@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#F6C453"/>
+  <circle cx="256" cy="268" r="190" fill="#FBD978"/>
+  <!-- motion lines -->
+  <g stroke="#fff" stroke-width="16" stroke-linecap="round" opacity=".85">
+    <line x1="58" y1="250" x2="104" y2="250"/><line x1="44" y1="296" x2="100" y2="296"/><line x1="66" y1="342" x2="104" y2="342"/>
+  </g>
+  <!-- box body -->
+  <path d="M136 214 L376 214 L376 392 Q376 410 358 410 L154 410 Q136 410 136 392 Z" fill="#D9955A"/>
+  <!-- top flaps -->
+  <path d="M136 214 L176 148 L336 148 L376 214 Z" fill="#E9AE72"/>
+  <path d="M176 148 L256 148 L240 214 L136 214 Z" fill="#F1BE86"/>
+  <path d="M256 148 L336 148 L376 214 L272 214 Z" fill="#E3A266"/>
+  <!-- tape -->
+  <rect x="232" y="214" width="48" height="56" fill="#7FD3CF"/>
+  <!-- face -->
+  <ellipse cx="208" cy="306" rx="15" ry="19" fill="#3B2A20"/>
+  <ellipse cx="304" cy="306" rx="15" ry="19" fill="#3B2A20"/>
+  <circle cx="213" cy="299" r="5" fill="#fff"/><circle cx="309" cy="299" r="5" fill="#fff"/>
+  <ellipse cx="178" cy="344" rx="20" ry="12" fill="#F28B82" opacity=".75"/>
+  <ellipse cx="334" cy="344" rx="20" ry="12" fill="#F28B82" opacity=".75"/>
+  <path d="M236 340 Q256 362 276 340" fill="none" stroke="#3B2A20" stroke-width="9" stroke-linecap="round"/>
+  <!-- tooth -->
+  <g transform="translate(354 390) rotate(12) scale(2.6)">
+    <path d="M-19 -10 Q-20 -24 -8 -24 Q-1 -24 0 -19 Q1 -24 8 -24 Q20 -24 19 -10 Q18 2 14 8 Q13 18 10 21 Q6 25 3 20 Q1 14 0 12 Q-1 14 -3 20 Q-6 25 -10 21 Q-13 18 -14 8 Q-18 2 -19 -10 Z" fill="#fff"/>
+  </g>
+</svg>
