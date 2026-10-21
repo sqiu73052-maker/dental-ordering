@@ -722,7 +722,8 @@ async function setSt(pairs,st,undo){
   render()}
 const ARCH=7*864e5;/* ④ 已出貨欄只留近 1 週；訂單全部出貨就進「歷史訂單」（AO 不必等回收） */
 const lastShip=o=>Math.max(0,...o.items.map(i=>i.at||0));
-const histOrd=o=>!o.cx&&o.items.length>0&&o.items.every(i=>i.st=='已出貨');
+const histOrd=o=>!o.cx&&o.items.some(i=>i.st=='已出貨');/* 有任一品項出貨就收錄（部分出貨也算），方便依出貨日對帳 */
+const shipIn=i=>{if(i.st!='已出貨')return false;if(S.hdt!='ship'||!(S.hdf||S.hde))return true;const d=iso(new Date(i.at||0));return !((S.hdf&&d<S.hdf)||(S.hde&&d>S.hde))};
 const archOrd=o=>!o.cx&&o.items.length>0&&o.items.every(i=>i.st=='已出貨')&&(o.type!='ao'||!rOpen(o))&&Date.now()-lastShip(o)>ARCH;
 const CALLD=5,CALLNEED=3;/* 待確認 2 個工作天內確認（CONFD）；叫貨需求 3 個工作天內向廠商叫貨；已叫貨滿 5 個工作天要向廠商確認進度 */
 const stTs=r=>r.i.at||r.o.createdAt||new Date((r.o.od||TODAY)+'T00:00:00').getTime();
@@ -744,22 +745,22 @@ const histDate=(o,t)=>t=='ship'?iso(new Date(lastShip(o))):t=='surg'?(o.surg||''
 const histFiltered=()=>{const F=S.f,qs=S.hq.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return S.orders.filter(histOrd).filter(o=>{if(F.c&&!(o.clinic==F.c||dst(o)==F.c))return false;if(F.t&&o.type!=F.t)return false;
     if(qs.length){const b=histField(o,S.hqt);if(!qs.every(q=>b.includes(q)))return false}
-    if(S.hdf||S.hde){const d=histDate(o,S.hdt);if(!d||(S.hdf&&d<S.hdf)||(S.hde&&d>S.hde))return false}
+    if(S.hdf||S.hde){if(S.hdt=='ship'){if(!o.items.some(shipIn))return false}else{const d=histDate(o,S.hdt);if(!d||(S.hdf&&d<S.hdf)||(S.hde&&d>S.hde))return false}}
     return true}).sort((a,b)=>lastShip(b)-lastShip(a))};
 function histList(){const list=histFiltered(),PG=20,pages=Math.max(1,Math.ceil(list.length/PG));if(S.hp>=pages)S.hp=pages-1;
   const fd=t=>{const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`};
   const row=o=>{const k='h:'+o.id,sl=[...new Set(o.items.map(i=>i.sh).filter(Boolean))],ao=o.type=='ao';
-    return `<details class="cbk fold" data-k="${esc(k)}" ${S.b4o[k]?'open':''}><summary><span class="slh2" style="flex:1;margin:0"><span><b>#${esc(o.no)} ${esc(dst(o))}</b> <span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.rush?' <span class="tag t2">特急件</span>':''}${ao?' '+rTag(o):''}${o.pt?` <small>${esc(o.pt)}</small>`:''}</span><small>出貨 ${fd(lastShip(o))} · ${o.items.length} 項</small></span></summary>
+    return `<details class="cbk fold" data-k="${esc(k)}" ${S.b4o[k]?'open':''}><summary><span class="slh2" style="flex:1;margin:0"><span><b>#${esc(o.no)} ${esc(dst(o))}</b> <span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.rush?' <span class="tag t2">特急件</span>':''}${o.items.some(i=>i.st!='已出貨')?` <span class="tag t0">部分出貨 ${o.items.filter(i=>i.st=='已出貨').length}/${o.items.length}</span>`:''}${ao?' '+rTag(o):''}${o.pt?` <small>${esc(o.pt)}</small>`:''}</span><small>出貨 ${fd(lastShip(o))} · ${o.items.length} 項</small></span></summary>
       <div class="meta" style="margin-top:6px"><span>叫貨</span><b>${md(o.od)} ${esc(o.tm||'')}</b>${o.surg?`<span>手術日</span><b>${md(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:''}${o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:''}<span>醫生</span><b>${esc(o.doc||'')}</b><span>登記</span><b>${esc(o.staff||'')}</b>${dst(o)!=o.clinic?`<span>叫貨院所</span><b>${esc(o.clinic)}</b>`:''}${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}</div>${o.note?`<div class="sub" style="margin:0 0 6px">備註：${esc(o.note)}</div>`:''}
-      ${o.items.map(i=>`<div class="it"><div>${esc(dn(i.n))} × ${i.q}${i.sp?' <small>特殊</small>':''}</div></div>`).join('')}
+      ${o.items.map(i=>`<div class="it"><div>${esc(dn(i.n))} × ${i.q}${i.sp?' <small>特殊</small>':''}</div>${i.st!='已出貨'?`<small style="color:var(--mute)">${esc(i.st)}</small>`:''}</div>`).join('')}
       ${isHQ()&&sl.length?`<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">${sl.map(n=>`<button class="btn g sm" data-a="slipview" data-v="${esc(n)}">查看出貨單 ${esc(n)}</button>`).join('')}</div>`:''}</details>`};
-  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0"><div class="sub" style="margin:0">${(S.hq.trim()||S.hdf||S.hde)?'符合 ':'共 '}${list.length} 筆${(S.hq.trim()||S.hdf||S.hde)?'':'（全部品項都已出貨的訂單）'}。點一下展開。</div>${list.length?'<button class="btn g sm" data-a="hcsv">匯出試算表</button>':''}</div>${S.hMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.hMsg)}</div>`:''}`
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0"><div class="sub" style="margin:0">${(S.hq.trim()||S.hdf||S.hde)?'符合 ':'共 '}${list.length} 筆${(S.hq.trim()||S.hdf||S.hde)?'':'（有品項已出貨的訂單）'}。點一下展開。</div>${list.length?'<button class="btn g sm" data-a="hcsv">匯出試算表</button>':''}</div>${S.hMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.hMsg)}</div>`:''}`
   +(list.length?list.slice(S.hp*PG,S.hp*PG+PG).map(row).join('')+`<div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px"><button class="btn g sm" data-a="hpg" data-v="-1" ${S.hp==0?'disabled':''}>上一頁</button><small>第 ${S.hp+1} / ${pages} 頁（每頁 ${PG} 筆）</small><button class="btn g sm" data-a="hpg" data-v="1" ${S.hp>=pages-1?'disabled':''}>下一頁</button></div>`:`<div class="card"><div class="empty">${(S.hq.trim()||S.hdf||S.hde)?'找不到符合的訂單':'目前沒有封存的訂單'}</div></div>`)}
-/* 歷史訂單匯出：目前搜尋／篩選結果，一個品項一列，CSV（含 BOM，Excel 可直接開） */
+/* 歷史訂單匯出：目前搜尋／篩選結果，只匯出已出貨品項（依出貨日篩選時只取區間內出貨的），一個品項一列，CSV（含 BOM，Excel 可直接開） */
 function histCsv(){const D=t=>t?iso(new Date(t)):'',lgAt=(i,st)=>{const e=(i.lg||[]).filter(x=>x.s==st).pop();return e?D(e.at):''};
-  const H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫生','登記人員','品項','特殊規格','數量','向廠商叫貨日','廠商到貨日','出貨單號','出貨日','AO 回收','備註'];
-  const R=[];histFiltered().forEach(o=>o.items.forEach(i=>R.push([`="${o.no}"`,o.type=='ao'?'AO 箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',o.staff||'',dn(i.n),i.sp?'是':'',i.q,lgAt(i,'已向廠商叫貨'),lgAt(i,'廠商到貨'),i.sh||'',D(i.at),o.type=='ao'?(rOK(i)?'已收回':'未收回'):'',o.note||''])));
-  const c=v=>{v=String(v==null?'':v);return /^="/.test(v)?v:/[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫生','登記人員','品項','特殊規格','數量','向廠商叫貨日','廠商到貨日','出貨單號','出貨日','AO回收','備註'];
+  const R=[];histFiltered().forEach(o=>o.items.filter(shipIn).forEach(i=>R.push([`="${o.no}"`,o.type=='ao'?'AO箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',o.staff||'',dn(i.n),i.sp?'是':'',i.q,lgAt(i,'已向廠商叫貨'),lgAt(i,'廠商到貨'),i.sh||'',D(i.at),o.type=='ao'?(rOK(i)?'已收回':'未收回'):'',o.note||''])));
+  const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';/* 每格都加引號：試算表若把空白當分隔符號也不會拆欄 */
   return {n:R.length,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
 async function dlFile(filename,data,type){let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
   if(dl){await dl.save({filename,data});return}
