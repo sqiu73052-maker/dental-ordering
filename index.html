@@ -798,6 +798,7 @@ const VDEF={'b:Hiossen':'奧齒泰','b:Nobel':'興旺','b:Straumann':'士卓曼'
 const venMap=()=>({...VDEF,...(S.ven||{})});
 const vendorOf=n=>{const V=venMap(),k=dn(n).replace(/（特殊規格）|（型錄外）/g,'').trim();if(V[k])return V[k];const b=/Hiossen|\(H\)/.test(n)?'Hiossen':/Nobel|\(N\)/.test(n)?'Nobel':/Straumann/i.test(n)?'Straumann':'';return (b&&V['b:'+b])||'其他'};
 const VEN=['奧齒泰','興旺','士卓曼','其他'];
+const VCODE={'奧齒泰':'H','興旺':'N','士卓曼':'S'},vcode=v=>VCODE[v]||v;/* 採購單上的廠商代號（v276，om） */
 const venList=()=>{const x=[...new Set(Object.values(venMap()).filter(v=>v&&v!='其他'))];VEN.slice(0,-1).reverse().forEach(v=>{const k=x.indexOf(v);if(k>=0)x.splice(k,1);x.unshift(v)});return [...x,'其他']};
 /* 向廠商叫貨的依據：待向廠商叫貨的品項匯出 CSV。
    merge＝同廠商同品項（AO 分開）合併成一列、數量加總，最後一欄列出來源訂單與各自數量；detail＝一個訂單品項一列，附同品項合計，方便逐張核對、匯入庫存系統 */
@@ -806,7 +807,7 @@ function vendCsv(kind,only,ven){const rows=allIt().filter(r=>r.i.st=='待向廠�
   rows.sort(ord);const g=new Map();rows.forEach(r=>{const k=key(r);if(!g.has(k))g.set(k,[]);g.get(k).push(r)});const tot=rs=>rs.reduce((t,r)=>t+r.i.q,0);
   const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',D=TODAY;let H,R=[];
   if(kind=='merge'){H=['廠商','品名','規格','品號','備註','合計數量','訂單數','來源訂單（訂單號×數量）'];
-    [...g.values()].forEach(rs=>{const r=rs[0];const x=p3(r.i.n);R.push([vendorOf(r.i.n),x.n,x.s,x.p,tag(r.i,r.o),tot(rs),new Set(rs.map(x=>x.o.no)).size,rs.map(x=>`${x.o.no}×${x.i.q}（${dst(x.o)}）`).join('、')])})}
+    [...g.values()].forEach(rs=>{const r=rs[0];const x=p3(r.i.n);R.push([vcode(vendorOf(r.i.n)),x.n,x.s,x.p,tag(r.i,r.o),tot(rs),new Set(rs.map(x=>x.o.no)).size,rs.map(x=>`${x.o.no}×${x.i.q}（${dst(x.o)}）`).join('、')])})}
   else{/* 匯入庫存系統用：品名、規格、數量、叫貨廠商、叫貨院所、院所叫貨日期、總倉向廠商叫貨日期、到貨狀況。
       範圍＝廠商叫貨頁上全部品項（待叫貨＋已叫貨待到貨）＋近 30 天到貨的；一個訂單品項一列 */
     const lgAt=(i,f)=>{const e=(i.lg||[]).filter(f).pop();return e?e.at:0},caOf=i=>i.ca||lgAt(i,l=>l.s=='已向廠商叫貨'),raOf=i=>i.ra||lgAt(i,l=>l.s=='廠商到貨'||(l.s=='已出貨'&&l.dir)),
@@ -817,7 +818,7 @@ function vendCsv(kind,only,ven){const rows=allIt().filter(r=>r.i.st=='待向廠�
       R.push([`="${o.no}"`,x.n,x.s,x.p,i.q,vendorOf(i.n),o.clinic,o.od||'',i.st=='待向廠商叫貨'?'':DT(ca),
         i.st=='待向廠商叫貨'?'尚未叫貨':i.st=='已向廠商叫貨'?(i.dv?'待到貨（直送院所）':'待到貨'):(i.dir||i.dv?'院所已收到 ':'已到貨 ')+DT(ra),tag(i,o)])});
     return {n:vs.length,g:new Set(vs.map(key)).size,name:`向廠商叫貨-訂單明細-${fstamp()}.csv`,csv:'﻿'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
-  return {n:rows.length,g:g.size,name:`${kind=='merge'?'採購單':'向廠商叫貨-訂單明細'}-${ven?ven+'-':''}${fstamp()}.csv`,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
+  return {n:rows.length,g:g.size,name:`${kind=='merge'?'採購單':'向廠商叫貨-訂單明細'}-${ven?(kind=='merge'?vcode(ven):ven)+'-':''}${fstamp()}.csv`,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
 function vendorView(which){
   /* 版面同常規出貨 ④：每個廠商底下，同送貨地點一格，品項依品牌＋類別分組小字列出。
      一律用勾選：勾品項（或整格、整個廠商全選），下方浮出功能列執行 已叫貨／已叫貨・直送／到貨／院所已收到／退回 */
@@ -1416,7 +1417,7 @@ const TOURS={
   {s:['.card.work'],tap:['.card.work .st button.p'],t:'⑤ 加入數量',d:'找到需要的尺寸，按「＋」加數量；數字也可以直接點進去輸入。'},
   {s:['button[data-a=spec]'],t:'找不到規格？',d:'按這裡填寫特殊規格。總倉確認後會向廠商叫貨。第一次打開時會有專屬導覽。'},
   {s:['.cartbar','.cartp'],tap:['.cartbar button[data-a=review]','.cartp button[data-a=review]'],t:'⑥ 確認訂單',d:'選好的品項會集中在這裡。按「確認訂單」，填醫師、手術日、希望到貨日，檢查無誤後送出。'},
-  {s:['.top button[data-v=mine]'],t:'⑦ 我的訂單',d:'送出後到這裡查看出貨進度。要改數量、日期、醫生、患者或備註，按「修改訂單」（不能加品項，要加請另叫一張）；改完叫貨日會變成當天，重新給總倉確認。總倉已向廠商叫貨或已開出貨單的訂單只能改日期，要取消請按「申請取消」，等總倉回覆。廠商直接送到院所的品項會標「廠商直送中」，收到貨請按「確認收到」。'},
+  {s:['.top button[data-v=mine]'],t:'⑦ 我的訂單',d:'送出後到這裡查看出貨進度。要改數量、日期、醫生、患者或備註，按「修改訂單」（不能加品項，要加請另叫一張）；改完叫貨日會變成當天，重新給總倉確認。總倉已向廠商叫貨或已開出貨單的訂單只能改日期，要取消請按「申請取消」，等總倉回覆。廠商直接送到院所的品項會標「廠商直送中」，收到貨請按「確認收到」。手動填寫的品項如果總倉跟你確認後改過，會標「總倉已修改」，滑過去可以看原本寫的內容。'},
   {s:['button[data-a=goset]'],t:'想再看一次？',d:'按右上角的齒輪「設定」，就能重新播放這個導覽。',last:true}]},
  spec:{name:'特殊規格叫貨導覽',steps:[
   {t:'特殊規格叫貨',d:'總倉沒有常備的規格，就在這裡填寫。總倉確認後會向廠商叫貨，所以到貨時間會比常規品項久一點。',pre:()=>tourSp(false)},
@@ -1434,17 +1435,17 @@ const TOURS={
   {s:['.seg.tabs.hqt'],t:'四個工作區',d:'出貨排程（常規和 AO 箱一起排）、廠商叫貨、回收（AO 箱和租借器械）、訂單查詢。按鈕上的數字是待處理件數。',pre:tourTab('board',0)},
   {s:['button[data-a=mail]'],t:'✉ 待處理通知',d:'院所申請取消、已取消但廠商貨要處理的訂單、帳號申請，都集中在這裡，數字是還沒處理的件數。點開可以直接同意或不同意；有新的取消申請時會自動跳出來。',pre:tourTab('board',0)},
   {s:['.stls'],t:'三個區塊',d:'出貨排程分成待確認、可出貨、登錄庫存，點數字卡切換；急件、快到期的件數寫在數字卡上方。下面的搜尋框可以找院所、品項、訂單號、出貨單號。',pre:tourTab('board',0)},
-  {s:['.board1'],t:'① 待確認',d:'院所新送出或修改過的訂單會到這裡，一張訂單一組。勾選品項（或勾訂單整張），再按下方功能列的「總倉出貨」（有現貨）或「需叫貨」（要跟廠商叫）。請在 2 個工作天內確認。',pre:tourTab('board',0)},
-  {s:['.fchs'],t:'② 可出貨：先看今天出貨',d:'進來預設是「今天出貨」（已開出貨單的，加上今天要出、逾期的；逾期會標「逾期 N 天」）。也可以切到「下個工作天」或「全部」。',pre:tourTab('board',2)},
-  {s:['.board1 .sgx','.board1'],t:'勾選、合併出貨',d:'同一個送貨地點放在同一框，每張訂單有勾選框（預設不勾），或按「選這組」。勾選後下方出現「產生出貨單／標記已出貨／退回／清除」，點訂單號可以展開看醫生、患者、叫貨時間等細節，只有同一個送貨地點能合併，AO 箱要跟常規分開開單。開好出貨單的會移到上面「今天出貨」，包好按「標記已出貨」或「全部標記已出貨」。',pre:tourTab('board',2)},
-  {s:['.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，依叫貨院所分組（為了對帳）。勾選登錄好的品項（或按「全選」整間院所），再按下方的「✓ 已登錄」就會移走，按錯可以按「復原」。廠商直送的不用登錄。',pre:tourTab('board',3)},
-  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「匯出採購單」（一家供應商一個檔，同品項合併數量），匯出過的標「已匯出」。勾選品項（可整格，或按「全選」整個供應商），下方會出現功能列：送到總倉按「已叫貨」，請廠商直接送院所按「已叫貨・直送」；貨到按「到貨」，直送的院所收到後按「院所已收到」；按錯可以按「退回」。',pre:tourTab('vpend')},
+  {s:['.board1'],t:'① 待確認',d:'院所新送出或修改過的訂單會到這裡，一張訂單一組，品牌用顏色標籤區分（Hiossen 粉紅、Nobel 淺藍、Straumann 淺紫、其他淺黃）。勾選品項或勾整張訂單，再按下方功能列的「總倉出貨」（有現貨）或「需叫貨」（要跟廠商叫）。院所手動填寫的品項，跟院所確認後可以勾一項按「修改品名規格」，會標「總倉已修改」並保留原本內容。',pre:tourTab('board',0)},
+  {s:['.fchs'],t:'② 可出貨：四個篩選',d:'「準備出貨」只看已開出貨單、還沒出貨的；「今天出貨」是已開單的加上今天要出、逾期的（預設看這個）；也可以切到「下個工作天」或「全部」。',pre:tourTab('board',2)},
+  {s:['.board1 .sgx','.board1'],t:'勾選、開單、出貨',d:'同一個送貨地點放在同一框。勾地點標題的框會選整組，也可以只勾單張訂單。勾還沒開單的，下方出現「產生出貨單／標記已出貨／退回」，只有同一個送貨地點能合併，AO 箱要跟常規分開開單。已開出貨單的在上面「準備出貨」區，包好後勾選（或按「全選」）再按「標記已出貨」。點訂單號可以展開細節，點出貨單號可以重印；出貨單上會列出包含的訂單和患者，多張訂單時「訂單」欄用圈號對應。',pre:tourTab('board',2)},
+  {s:['.tdb','.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，依叫貨院所分組。可以先按「匯出未登錄出貨品項」匯入庫存系統，再按「全選」、按下方的「✓ 已登錄」一次移走；也可以只勾部分。按錯可以按「復原」。廠商直送的不用登錄。',pre:tourTab('board',3)},
+  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「匯出採購單」（一家供應商一個檔，同品項合併數量，廠商用代號 H 奧齒泰、N 興旺、S 士卓曼），匯出過的標「已匯出」。送到總倉按「已叫貨」，請廠商直接送院所按「已叫貨・直送」；貨到按「到貨」，直送的院所收到後按「院所已收到」；按錯可以按「退回」。',pre:tourTab('vpend')},
   {s:['.cutd','.board1'],t:'AO 箱',d:'AO 箱和常規一起排在「可出貨」，訂單旁標「AO 箱」和手術日。這裡可以調整 AO 箱「本次出貨涵蓋到」哪天：下週第 2 個工作天以前的標「本週必出」，之後的標「預備」可以先揀貨。',pre:()=>{tourTab('board',2)();if(S.d3f!='all'){S.d3f='all';render()}}},
   {s:['.main > .card'],t:'回收',d:'院所寄回 AO 箱或租借器械後，在這裡登記收回數量；Zygoma 租借的器械組另外登記。手術日後超過設定的工作天還沒收回會標示逾期，天數在「設定」修改。',pre:tourTab('ret')},
-  {s:['.seg.subtabs'],t:'訂單查詢',d:'「全部訂單」看每張訂單走到哪一步，取消的訂單會反灰標「已取消」、排最後，隔天自動清掉；出貨單號點了就能開出貨單重印；「歷史出貨」只列已出貨的品項，可依出貨日和院所篩選，按「匯出試算表」跟院所對帳。',pre:tourTab('all')},
+  {s:['.seg.subtabs'],t:'訂單查詢',d:'用來找訂單，不標逾期顏色。「全部訂單」看每張訂單各品項走到哪一步，取消的反灰排最後、隔天自動清掉；「歷史出貨」只列已出貨的品項，按「匯出試算表」跟院所對帳。兩邊用同一組篩選：選欄位打關鍵字、選日期類型（出貨日／手術日／叫貨日）和區間，再選院所、類型。',pre:tourTab('all')},
   {s:['button[data-a=goset]'],t:'想再看一次？',d:'按右上角的齒輪「設定」，就能重新播放這個導覽。',last:true,pre:()=>{S.d3f=null;tourTab('board',0)()}}]}};
 const TOUR={on:false,id:'',i:0,el:null,tm:0,auto:{}};
-const TVER={order:4,ship:4};/* 導覽內容大改時加版本號，大家會再自動看到一次 */
+const TVER={order:4,ship:5};/* 導覽內容大改時加版本號，大家會再自動看到一次 */
 const tourKey=id=>'zc_tour_'+id+(TVER[id]?'_v'+TVER[id]:'')+'_'+(A.me?A.me.id:'');
 const tourSeen=id=>{try{return localStorage.getItem(tourKey(id))=='1'}catch(e){return true}};
 const tourMark=id=>{try{localStorage.setItem(tourKey(id),'1')}catch(e){}};
