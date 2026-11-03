@@ -858,8 +858,8 @@ function boardView(){
   const OG=rs=>GRP(rs).map(g=>R3(g,true)).join('');
   /* 上方：今天出貨（已開出貨單，包好可一次全部標記已出貨）；下方：可出貨（尚未開單，不限日期都可勾選合併） */
   const fS=f3.filter(r=>r.i.sh),fU=f3.filter(r=>!r.i.sh);
-  const nShip=fS.length+fU.filter(r=>BK(sd(r))=='now').length,nNext=fU.filter(r=>BK(sd(r))=='next').length;/* 今天出貨＝已開單＋還沒開單但今天（含逾期）要出 */
-  const T3=(k,n,lab,cls)=>`<button class="fch ${cls} ${F==k?'on':''}" data-a="d3f" data-v="${k||'all'}" aria-pressed="${F==k}">${lab} <b>${n}</b></button>`;/* 可出貨內的篩選用小標籤，跟上方大數字卡區分，避免按錯 */
+  const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fS.concat(fU.filter(r=>BK(sd(r))=='now'))),nNext=oc(fU.filter(r=>BK(sd(r))=='next'));/* 今天出貨＝已開單＋還沒開單但今天（含逾期）要出 */
+  const T3=(k,n,lab,cls)=>`<button class="fch ${cls} ${F==k?'on':''}" data-a="d3f" data-v="${k||'all'}" aria-pressed="${F==k}" title="${n} 張訂單">${lab} <b>${n}</b></button>`;/* 可出貨內的篩選用小標籤，跟上方大數字卡區分，避免按錯 */
   const FL={prep:'準備出貨',ship:'今天出貨',next:'下個工作天要出'};
   const gS=grpBy(fS,r=>dst(r.o)),kS=Object.keys(gS).sort((x,y)=>x.localeCompare(y,'zh')),shOK=fS.filter(r=>!rqOpen(r.o));
   const secS=kS.length?`<div class="sec3 r"><h3>準備出貨</h3><small>已開出貨單 ${kS.length} 個地點 · ${fS.length} 項</small>${shOK.length?`<span style="margin-left:auto">${ckBox('shp',shOK,'全選','all')}</span>`:''}</div>`
@@ -876,7 +876,7 @@ function boardView(){
     return `<div class="sgx ${all.length?'ok':''}"><div class="sgh cfh"><div class="sgt">${gck}<b>📦 ${esc(c)}</b><span class="sgn sgq">${all.length?`可出貨 ${[...new Set(all.map(r=>r.o.id))].length} 張`:'目前沒有可出貨'}</span></div><div class="sg2"><span class="sg2l">${fb?`<small>最早出貨 <b class="sdt">${md(fb)}</b></small>`:''}</span><span class="cft">${btn}${all.length&&m<998?bTag(m):''}</span></div></div>
       ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${rn}${OG(all)}</div>`}).join(''):'';
   const aoN=fU.filter(r=>r.o.type=='ao').length,cutb=aoN?`<details class="cutd"><summary>AO 箱本次出貨涵蓋到 <b>${md(S.cut)}</b>${S.cut!=AOCUT?'（已調整）':''}</summary><div class="cutbar" style="margin:6px 0 0"><input id="cut" type="date" data-s="cut" value="${S.cut}" style="width:auto"><small>預設出到下週第 3 個工作天（${md(AOCUT)}），下週第 2 個工作天（${md(AOMUST)}）以前的本週必出；之後的列為「預備」，下週再出，可先揀貨。每週一自動換新的一週，臨時要調整可以改日期（所有人共用，只在本週有效）${S.cut!=AOCUT?'，<button class="link" style="padding:0;font-size:12px" data-a="cutreset">恢復預設</button>':''}。</small></div></details>`:'';
-  const b3=`<div class="fchs">${T3('prep',fS.length,'準備出貨','g')}${T3('ship',nShip,'今天出貨','r')}${T3('next',nNext,'下個工作天','w')}${T3('',f3.length,'全部','')}</div>`
+  const b3=`<div class="fchs">${T3('prep',oc(fS),'準備出貨','g')}${T3('ship',nShip,'今天出貨','r')}${T3('next',nNext,'下個工作天','w')}${T3('',oc(f3),'全部','')}</div>`
     +cutb
     +((!F||F=='prep'||F=='ship'?secS:'')+(F=='prep'?'':secU)||`<div class="card"><div class="empty">沒有${FL[F]||''}的品項</div></div>`);
   /* ④ 登錄庫存：已出貨、還沒登錄庫存系統的品項，依「叫貨院所」分組（登錄庫存要依叫貨院所對帳）；登錄完就移走 */
