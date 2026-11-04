@@ -449,6 +449,7 @@ const chgRe=o=>{const c=(o.hist||[]).filter(x=>x.t=='re').pop();if(!c)return '';
 const chgTxt=o=>{const a=chgRe(o),e=(o.hist||[]).filter(x=>x.t=='ed').pop();return [a,e?`品項已修改（${ft(e.at)}${e.by?' '+esc(e.by):''}）：${esc(e.txt||'')}`:''].filter(Boolean).join('<br>')};
 const VST=['待向廠商叫貨','已向廠商叫貨','廠商到貨'];
 const ITL=i=>!!i.sh||['已向廠商叫貨','廠商到貨','已出貨'].includes(i.st);/* 已叫貨／已開單／已出貨的品項，院所不能改 */
+const MAXN=60,MAXE=20;/* v309 配合資料庫規則：院所一張訂單最多 60 品項；超過 20 品項的訂單院所不能直接修改 */
 const canEditIt=o=>!o.cx&&o.type!='ao'&&!lockO(o);/* 有已叫貨／已開單／已出貨就不能改，只能申請取消 */
 const rqOpen=o=>!!(o.req&&o.req.st=='open'),RQK={cx:'取消訂單',ed:'修改品項'};
 const lockO=o=>o.items.some(i=>i.sh||['已向廠商叫貨','廠商到貨','已出貨'].includes(i.st));
@@ -580,7 +581,7 @@ function legend(b,c){let a=[];
   if(!a.length)return '';
   return `<div class="lg">${a.map(x=>`<span class="tag ${x[0]}">${x[1]}</span>`).join('')}<small>底色分類${grp(b,c)&&c!='MUA'?'，間隔分開不同系列或平台':''}</small></div>`}
 const stp=(k,q)=>`<div class="st"><button class="${q?'':'ghost'}" data-a="dec" data-v="${k}" aria-label="減少" ${q?'':'disabled tabindex="-1" aria-hidden="true"'}>−</button> <input class="qn ${q?'':'z'}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-qk="${k}" value="${q}" aria-label="數量"><button class="p" data-a="inc" data-v="${k}" aria-label="增加">+</button></div>`;
-const AOB=['Hiossen','Nobel','Nobel Zygoma'];
+const AOB=['Hiossen','Nobel','Straumann','Nobel Zygoma'];/* v310 om：加 Straumann（內容表 AOSPEC 尚未提供時，出貨單印空白表格手寫） */
 /* Zygoma 預設單顎；全口只有在這張訂單沒有其他品牌 AO 箱時才能選，選了 Zygoma 全口就不能再加其他品牌 */
 const zOther=()=>S.ao.some(x=>x.b!='Nobel Zygoma'),zFull=()=>S.ao.some(x=>x.b=='Nobel Zygoma'&&/ 全口 /.test(x.n));
 function aoView(){const f=S.af,z=f.b=='Nobel Zygoma',none=false;if(z&&zLn())f.rent='否';const need=z&&!f.rent,dup=S.ao.some(x=>x.b==f.b),zf=!z&&zFull(),fullOff=z&&zOther();
@@ -1070,7 +1071,7 @@ function histList(){if(S.hLoad)return '<div class="card"><div class="empty">正�
 /* 歷史訂單匯出：目前搜尋／篩選結果，只匯出已出貨品項（依出貨日篩選時只取區間內出貨的），一個品項一列，CSV（含 BOM，Excel 可直接開） */
 /* 匯出用：品項拆成 品牌／類別／名稱尺寸 */
 function itemCols(n0){let n=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim();const BR={'(h)':'Hiossen','(n)':'Nobel','hiossen':'Hiossen','nobel':'Nobel','straumann':'Straumann'};
-  const ao=AOP(n0);if(ao){const b=ao.b.startsWith('Nobel')?'Nobel':ao.b;return [b,'AO箱',n.replace(/^(Hiossen|Nobel)\s*/,'')]}
+  const ao=AOP(n0);if(ao){const b=ao.b.startsWith('Nobel')?'Nobel':ao.b;return [b,'AO箱',n.replace(/^(Hiossen|Nobel|Straumann)\s*/,'')]}
   const k=(catIdx()[tokN(n0)]||'').split('|');
   if(k[0]=='耗材'){const m=/^(\S+)\s+(.+)$/.exec(n);return m?[m[1],'耗材',m[2]]:['','耗材',n]}
   if(k[0]=='器械租借'){const m=/^(\S+)\s+(.+)$/.exec(n);return m?[m[1],'器械租借',m[2]]:['','器械租借',n]}
@@ -1172,7 +1173,7 @@ function showSlip(rec){let ov=$('slipov');const fresh=!ov;
 function regLine(r){if(r.void||(r.at||0)<REG_FROM||!shStat(r).n)return '';return r.reg?`<div class="sub" style="margin:4px 0 6px;font-size:12px;color:var(--ok)">✓ 已登錄庫存 · ${esc(r.reg.by||'')} ${r.reg.at?ft(r.reg.at):''} <button class="link" style="padding:0;font-size:12px" data-a="unregsh" data-v="${esc(r.id)}">取消</button></div>`:`<button class="btn sm" style="margin:4px 0 8px" data-a="regsh" data-v="${esc(r.id)}">✓ 已登錄庫存</button>`}
 function closeSlip(){document.body.classList.remove('slipopen');const o=$('slipov');if(o)o.remove();S.slipNo=null;S.slipV=false;const y=S.slipY||0;S.slipY=0;requestAnimationFrame(()=>window.scrollTo(0,y))}
 /* AO 箱出貨單：照現行橫式表單，每箱一張；Nobel / Hiossen × 單顎 / 全口 */
-const AOP=n=>{const m=/^(Hiossen|Nobel Zygoma|Nobel) (單顎|全口) AO 箱(?:（([^）]*)）)?$/.exec(String(n));if(!m)return null;const ps=(m[3]||'').split('，'),off=(ps.find(x=>/^不含/.test(x))||'').replace(/^不含/,'').split('、').filter(Boolean);return{b:m[1],t:m[2],off,rent:ps.includes('租借器械')}};
+const AOP=n=>{const m=/^(Hiossen|Nobel Zygoma|Nobel|Straumann) (單顎|全口) AO 箱(?:（([^）]*)）)?$/.exec(String(n));if(!m)return null;const ps=(m[3]||'').split('，'),off=(ps.find(x=>/^不含/.test(x))||'').replace(/^不含/,'').split('、').filter(Boolean);return{b:m[1],t:m[2],off,rent:ps.includes('租借器械')}};
 const AOSPEC={
  Nobel:{imp:[['植體 (Active)',['3510','35115','3513','3515','4310','43115','4313','4315','5010','50115','5013','5015']],['植體 (Parallel)',['37510','375115','37513','37515','4310','43115','4313','4315','5010','50115','5013','5015']]],iq:{全口:[2,2,4,4],單顎:[1,1,2,2]},
   mua:['Mua (NP)','Mua (RP)'],mg:[['0°',['2.5mm','3.5mm'],{全口:8,單顎:4}],['17°',['2.5mm','3.5mm'],{全口:8,單顎:4}],['30°',['3.5mm','4.5mm'],{全口:8,單顎:4}]],st:[0,4,8],tab:{全口:12,單顎:6},cap:4,
@@ -1195,7 +1196,7 @@ function zBody(p,tr,ti,B,E){let h='',zr=false;const ZRT={s:5,r:4,k:'nt',t:'<div 
   return h}
 function aoSheet(p,ctx){const Z=p.b=='Nobel Zygoma',S0=AOSPEC[p.b]||{},t=p.t,cl=(a,rs)=>{let u=a.reduce((t,c)=>t+(c&&c.s?c.s:1),rs||0);while(u<13){a.push(null);u++}return a},tr=(a,rs)=>'<tr>'+cl(a,rs).map(c=>c===null?'<td class="e"></td>':`<td${c.s?` colspan="${c.s}"`:''}${c.r?` rowspan="${c.r}"`:''}${c.k?` class="${c.k}"`:''}>${c.t}</td>`).join('')+'</tr>',ti=s=>`<tr class="gp"><td class="gp" colspan="13"></td></tr><tr><td class="ti" colspan="13">AO ${p.b.replace(' Zygoma','')} ${s}</td></tr>`,B=s=>({t:s}),E=()=>({t:''});
   let h='';
-  if(Z)h=zBody(p,tr,ti,B,E);else{
+  if(Z)h=zBody(p,tr,ti,B,E);else if(!S0.imp){/* 還沒有內容表的品牌：空白表格，總倉手寫品項與數量 */h+=ti('內容')+tr([{t:'品項',s:4},{t:'出貨量',s:3},{t:'使用量',s:3},{t:'剩餘量',s:3}])+Array.from({length:14},()=>tr([{t:'',s:4},{t:'',s:3},{t:'',s:3},{t:'',s:3}])).join('')}else{
   if(!p.off.includes('植體'))S0.imp.forEach(([nm,cs])=>{const q=cs.map((_,i)=>S0.iq[t][i%4]);h+=ti(nm)+tr([null,...cs.map(B)])+tr([B('出貨量'),...q.map(B)])+tr([B('使用量'),...cs.map(E)])+tr([B('剩餘量'),...cs.map(E)])});
   if(!p.off.includes('MUA'))S0.mua.forEach(nm=>{const a=[[],[],[],[]];S0.mg.forEach(([deg,sz,qq],gi)=>{const s=S0.st[gi];[0,1,2,3].forEach(r=>{while(a[r].length<s)a[r].push(null)});a[0].push(null);sz.forEach(x=>a[0].push(B(deg+' '+x)));a[1].push(B('出貨量'));sz.forEach(()=>a[1].push(B(qq[t])));a[2].push(B('使用量'));sz.forEach(()=>a[2].push(E()));a[3].push(B('剩餘量'));sz.forEach(()=>a[3].push(E()))});h+=ti(nm)+a.map(r=>tr(r)).join('')});
   const rt={s:5,r:3,k:'nt',t:`<div class="ntw"><div class="cb"><span><span class="bx"></span>總倉出貨：</span><span><span class="bx"></span>總倉收回：</span></div><div class="rm">${S0.rm}</div></div>`},tb=!p.off.includes('TAB'),cp=!p.off.includes('CAP'),n3=[null,null,null];
@@ -1469,6 +1470,7 @@ async function doDel(id){if(A.me&&id==A.me.id)return;if(lastAdm(id)){A.err='至�
 async function submitOrder(btn){
   const ao=ty()=='ao',h=S.hd[ty()];
   if(need().some(k=>!String(h[k]).trim())){S.err=true;review();const m=$('suberr');if(m)m.textContent='還不能送出，請補上：'+missing(h).join('、');const b=document.querySelector('.sheet .bad');if(b)b.focus();return}
+  if(!isHQ()&&items().length>MAXN){const m=$('suberr');if(m)m.textContent=`一張訂單最多 ${MAXN} 個品項，請分成兩張送出。`;return}
   const a2=items(),d=new Date(),base=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;let no=base,n2=0;while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
   const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),rush:!!h.rush,lab:ao?'':(h.lab||''),staff:h.staff.trim()||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:ao?'總倉出貨':'待確認'}))};
   btn.disabled=true;btn.textContent='送出中…';
@@ -1755,11 +1757,12 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='shipc'){const pr=[];S.orders.filter(o=>!o.cx&&dst(o)==v).forEach(o=>o.items.forEach((i,x)=>{if(isReady({o,i})&&i.sh&&!rqOpen(o))pr.push({o,x})}));if(pr.length)shipItems(pr);return}
   else if(a=='reopen'){const o=S.orders.find(x=>x.id==t.dataset.o);if(o)S.ed={id:o.id,k:'re',eta:o.eta||'',surg:o.surg||'',surgT:o.surgT||'',bad:false}}
   else if(a=='cxopen'){S.ed={id:t.dataset.o,k:'cx',reason:t.dataset.rb?CXR[2]:CXR[0],rb:!!t.dataset.rb}}
-  else if(a=='itopen'){const o=S.orders.find(x=>x.id==t.dataset.o);if(o&&canEditIt(o))S.ed={id:o.id,k:'it',q:o.items.map(i=>i.q),rm:o.items.map(()=>0),doc:o.doc||'',pt:o.pt||'',note:o.note||'',eta2:o.nd?'':o.eta||''}}
+  else if(a=='itopen'){const o=S.orders.find(x=>x.id==t.dataset.o);if(o&&canEditIt(o)&&!isHQ()&&o.items.length>MAXE)S.msg=`品項超過 ${MAXE} 個的訂單不能直接修改，請按「取消訂單」後重新叫貨，或請總倉協助修改。`;else if(o&&canEditIt(o))S.ed={id:o.id,k:'it',q:o.items.map(i=>i.q),rm:o.items.map(()=>0),doc:o.doc||'',pt:o.pt||'',note:o.note||'',eta2:o.nd?'':o.eta||''}}
   else if(a=='eq'&&S.ed&&S.ed.k=='it'){const x=+t.dataset.i;S.ed.q[x]=Math.max(1,Math.min(99,S.ed.q[x]+(+t.dataset.d)));S.ed.bad=false;S.ed.same=false}
   else if(a=='erm'&&S.ed&&S.ed.k=='it'){const x=+t.dataset.i;S.ed.rm[x]=S.ed.rm[x]?0:1;S.ed.bad=false;S.ed.same=false}
   else if(a=='itsave'){const o=S.orders.find(x=>x.id==t.dataset.o),e=S.ed;if(o&&e&&e.k=='it'){
     if(!canEditIt(o)){S.ed=null;S.msg='總倉已向廠商叫貨或已開出貨單，訂單不能修改，請按「申請取消」。'}
+    else if(!isHQ()&&o.items.length>MAXE){S.msg=`品項超過 ${MAXE} 個的訂單不能直接修改，請按「取消訂單」後重新叫貨，或請總倉協助修改。`}
     else{const ch=[],items=[];let ic=0;
       o.items.forEach((i,x)=>{if(ITL(i)){items.push(i);return}if(e.rm[x]){ch.push('移除 '+dn(i.n));ic=1;return}if(e.q[x]!=i.q){ch.push(`${dn(i.n)} ${i.q}→${e.q[x]}`);ic=1}items.push({...i,q:e.q[x]})});
       const info={doc:(e.doc||'').trim(),pt:(e.pt||'').trim(),note:(e.note||'').trim()},IL={doc:'醫生',pt:'患者',note:'備註'};
