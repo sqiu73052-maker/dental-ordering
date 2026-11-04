@@ -635,7 +635,8 @@ function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o
   let h=`<div class="card ${o.cx?'cxd':''}"><div class="oh"><b>#${esc(o.no)} ${esc(o.clinic)}${dst(o)!=o.clinic?` → ${esc(dst(o))}`:''} <span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.cx?' <span class="tag t2">已取消</span>':''}${o.rush&&op?' <span class="tag t2">特急件</span>':''}${op&&isLater(o)?' <span class="tag t0">預備</span>':''}${o.demo?' <span class="tag t4">範例</span>':''}</b><small>${o.cx?(o.cxAt?'取消 '+ft(o.cxAt):''):'已出貨 '+d+'/'+o.items.length}</small></div>
   ${o.cx?`<div class="sub" style="margin:0 0 6px">取消原因：${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</div>`:chgTxt(o)?`<div class="hint" style="margin:0 0 6px">${chgTxt(o)}</div>`:''}<div class="meta">${meta}</div>${o.note?`<div class="sub" style="margin:0 0 6px">備註：${esc(o.note)}</div>`:''}`;
   if(o.cx)h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}</span><span class="tag t4">${esc(i.st)}</span>`,'s1')}</div>`;
-  else h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}${i.by&&i.st!='待確認'?` <small class="oby" title="${esc((i.lg||[]).map(l=>ft(l.at)+' '+l.s+'：'+l.by).join('\n'))}">· ${esc(i.by)} ${ft(i.at)}</small>`:''}${ao?'':shT(i)}</span>${ao?'':`<span class="tag ${stCls(i.st)}">${esc(i.st)}</span>`}`,'s1')}</div>`;
+  else h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}${i.by&&i.st!='待確認'?` <small class="oby" title="${esc((i.lg||[]).map(l=>ft(l.at)+' '+l.s+'：'+l.by).join('\n'))}">· ${esc(i.by)} ${ft(i.at)}</small>`:''}${ao||shOne(o)?'':shT(i)}</span>${ao?'':`<span class="tag ${stCls(i.st)}">${esc(i.st)}</span>`}`,'s1')}</div>`;
+  if(!ao&&shOne(o))h+=`<div class="sub" style="margin:6px 0 0">出貨單${shT(o.items[0])}</div>`;
   if(ao){const shn=[...new Set(o.items.filter(i=>i.sh).map(i=>i.sh))];if(op)h+=`<div class="sub" style="margin:8px 0 0">待出貨，請到「出貨排程」操作。</div>`;if(shn.length&&isHQ())h+=`<div class="sub" style="margin:8px 0 0">出貨單 ${shn.map(n=>isHQ()?`<button class="link" style="padding:0;font-size:13px" data-a="slipview" data-v="${esc(n)}">${esc(n)}</button>`:esc(n)).join('、')}</div>`}
   return h+'</div>'}
 const allIt=()=>S.orders.filter(o=>!o.cx).flatMap(o=>o.items.map((i,x)=>({o,i,x})));
@@ -652,6 +653,7 @@ const grpBy=(arr,f)=>arr.reduce((m,r)=>((m[f(r)]=m[f(r)]||[]).push(r),m),{});
 const relT=i=>'';
 /* 廠商直送的品項：院所收到後在「我的訂單」按「確認收到」（按兩下確認，避免誤按），只有直送品項才有這顆按鈕 */
 const dvBtn=(o,i)=>{if(o.cx||i.st!='已向廠商叫貨'||!i.dv)return '';const k=o.id+':'+o.items.indexOf(i),on=S.dvc==k;return ` <button class="btn sm${on?'':' g'}" style="margin-left:4px" data-a="dvok" data-v="${esc(k)}">${on?'確定已收到？再按一次':'確認收到'}</button>`};
+const shOne=o=>{const L=o.items.filter(i=>!i.cx);return L.length>1&&L.every(i=>i.sh)&&new Set(L.map(i=>i.sh)).size==1};/* v308 om：整張同一張出貨單，單號只顯示一次 */
 const shT=i=>i.dir&&!i.sh?' <span class="tag t4">廠商直送</span>':i.sh?(isHQ()?` <button class="link" style="padding:0;font-size:12px" data-a="slipview" data-v="${esc(i.sh)}">${esc(i.sh)}</button>`:''):relT(i);/* 院所不顯示出貨單號（紙本隨貨附上即可，v253 om） */
 const sm=r=>`<small${r.i.by&&r.i.st!='待確認'?` title="${esc(r.i.by)}"`:''}>#${esc(r.o.no)}${r.o.nd?'':' · '+mdn(r.o.eta)}${r.o.type=='ao'?' · AO 箱':''}${diff(r.o)}</small>${shT(r.i)}${r.i.st!='已出貨'&&utag(r.o)?' '+utag(r.o):''}`;
 const ukey=o=>o.nd?'':(o.eta||(o.type=='ao'?o.surg:'')||'');
@@ -844,7 +846,7 @@ function boardView(){
   /* ③ 可出貨（送貨地點＋出貨日合併，參考出貨排程）：一個送貨地點一個綠框，最急的排最上面；框內依出貨日排序。
      出貨日＝希望到貨日往前 S.sl 個工作天（預設 1，設定可改）；不限日期都可勾選訂單合併開單（同送貨地點），開好單的移到上方「今天出貨」 */
   const SL=S.sl??1,sby=o=>{if(o.nd||!o.eta)return '';const d=new Date(o.eta+'T00:00:00');for(let i=0;i<20&&isOff(d);i++)d.setDate(d.getDate()-1);for(let k=0;k<SL;k++){do{d.setDate(d.getDate()-1)}while(isOff(d))}return iso(d)},sd=r=>{const u=udays(r.o);return u==null?null:u-SL};/* SL＝出貨日比希望到貨日早幾個工作天（設定可改，預設 1） */
-  const BK=x=>x==null?'':x<=0?'now':x==1?'next':'',F=S.d3f==null||S.d3f=='now'?'ship':S.d3f=='all'?'':S.d3f;/* 預設看今天出貨 */
+  const BK=x=>x==null?'':x<=0?'now':x==1?'next':'',BKr=r=>r.o.type=='ao'&&!r.i.sh&&!isLater(r.o)?'now':BK(sd(r)),/* v308 om：AO 箱本週可出／必出也算今天出貨 */F=S.d3f==null||S.d3f=='now'?'ship':S.d3f=='all'?'':S.d3f;/* 預設看今天出貨 */
   const bTag=x=>x==null?'':x<0?`<span class="tag t2">逾期 ${-x} 天</span>`:x==0?'<span class="tag t2">今天要出</span>':x==1?'<span class="tag t0">下個工作天出</span>':'';
   /* 一張訂單一列：左邊勾選（可出貨才有）、中間品項、右邊 到貨日／出貨期限／狀態 */
   const R3=(g,pick)=>{const r=g[0],o=r.o,by=sby(o),x=sd(r),ao=o.type=='ao',sk=pick=='shp',on=sk?ckOn('shp',g):pick&&g.every(selR);
@@ -858,7 +860,7 @@ function boardView(){
   const OG=rs=>GRP(rs).map(g=>R3(g,true)).join('');
   /* 上方：今天出貨（已開出貨單，包好可一次全部標記已出貨）；下方：可出貨（尚未開單，不限日期都可勾選合併） */
   const fS=f3.filter(r=>r.i.sh),fU=f3.filter(r=>!r.i.sh);
-  const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fS.concat(fU.filter(r=>BK(sd(r))=='now'))),nNext=oc(fU.filter(r=>BK(sd(r))=='next'));/* 今天出貨＝已開單＋還沒開單但今天（含逾期）要出 */
+  const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fS.concat(fU.filter(r=>BKr(r)=='now'))),nNext=oc(fU.filter(r=>BKr(r)=='next'));/* 今天出貨＝已開單＋還沒開單但今天（含逾期）要出 */
   const T3=(k,n,lab,cls)=>`<button class="fch ${cls} ${F==k?'on':''}" data-a="d3f" data-v="${k||'all'}" aria-pressed="${F==k}" title="${n} 張訂單">${lab} <b>${n}</b></button>`;/* 可出貨內的篩選用小標籤，跟上方大數字卡區分，避免按錯 */
   const FL={prep:'準備出貨',ship:'今天出貨',next:'下個工作天要出'};
   const gS=grpBy(fS,r=>dst(r.o)),kS=Object.keys(gS).sort((x,y)=>x.localeCompare(y,'zh')),shOK=fS.filter(r=>!rqOpen(r.o));
@@ -868,7 +870,7 @@ function boardView(){
       ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${GRP(srt(all)).map(g=>R3(g,'shp')).join('')}</div>`}).join(''):'';
   const gU=grpBy(fU,r=>dst(r.o));
   const msdU=k=>Math.min(999,...gU[k].map(r=>sd(r)??998));
-  const kU=Object.keys(gU).filter(k=>!F||gU[k].some(r=>BK(sd(r))==(F=='ship'?'now':F))).sort((x,y)=>msdU(x)-msdU(y)||Math.max(0,...gU[y].map(lvOf))-Math.max(0,...gU[x].map(lvOf))||x.localeCompare(y,'zh'));
+  const kU=Object.keys(gU).filter(k=>!F||gU[k].some(r=>BKr(r)==(F=='ship'?'now':F))).sort((x,y)=>msdU(x)-msdU(y)||Math.max(0,...gU[y].map(lvOf))-Math.max(0,...gU[x].map(lvOf))||x.localeCompare(y,'zh'));
   const secU=kU.length?`<div class="sec3"><h3>可出貨</h3><small>勾選要出的訂單，同一個送貨地點可以合併開單</small></div>`
     +kU.map(c=>{const all=srt(gU[c]),m=msdU(c),fb=all.map(r=>sby(r.o)).filter(Boolean).sort()[0],rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
     const rl=all.filter(r=>r.i.rel),rn=rl.length?`<div class="wn">原出貨單 ${[...new Set(rl.map(r=>r.i.rel.no))].map(esc).join('、')} 因 ${[...new Set(rl.map(r=>r.i.rel.cx))].map(esc).join('、')} 取消而作廢，請重新產生出貨單。</div>`:'';
@@ -1061,7 +1063,7 @@ function histList(){if(S.hLoad)return '<div class="card"><div class="empty">正�
   const row=o=>{const k='h:'+o.id,its=o.items.filter(shipIn),sl=[...new Set(its.map(i=>i.sh).filter(Boolean))],ao=o.type=='ao';
     return `<details class="cbk fold" data-k="${esc(k)}" ${S.b4o[k]?'open':''}><summary><span class="slh2" style="flex:1;margin:0"><span><b>#${esc(o.no)} ${esc(dst(o))}</b> <span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.rush?' <span class="tag t2">特急件</span>':''}${ao?' '+rTag(o):''}${o.pt?` <small>${esc(o.pt)}</small>`:''}</span><small>出貨 ${fd(lastShip(o))} · ${its.length} 項</small></span></summary>
       <div class="meta" style="margin-top:6px"><span>叫貨</span><b>${md(o.od)} ${esc(o.tm||'')}</b>${o.surg?`<span>手術日</span><b>${md(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:''}${o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:''}<span>醫生</span><b>${esc(o.doc||'')}</b><span>登記</span><b>${esc(o.staff||'')}</b>${dst(o)!=o.clinic?`<span>叫貨院所</span><b>${esc(o.clinic)}</b>`:''}${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}</div>${o.note?`<div class="sub" style="margin:0 0 6px">備註：${esc(o.note)}</div>`:''}
-      <div class="ogi">${ITG(its,i=>`<span>${NMg(i)}${shT(i)}</span>`,'s1')}</div>
+      <div class="ogi">${ITG(its,i=>`<span>${NMg(i)}${sl.length==1&&its.every(y=>y.sh)?'':shT(i)}</span>`,'s1')}</div>
       ${isHQ()&&sl.length?`<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">${sl.map(n=>`<button class="btn g sm" data-a="slipview" data-v="${esc(n)}">查看出貨單 ${esc(n)}</button>`).join('')}</div>`:''}</details>`};
   return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0"><div class="sub" style="margin:0">${(S.hq.trim()||S.hdf||S.hde)?'符合 ':'共 '}${list.length} 筆${(S.hq.trim()||S.hdf||S.hde)?'':'（有品項已出貨的訂單，只列已出貨品項）'}。點一下展開。${S.hAt?` <small style="color:var(--mute)">資料庫資料載入於 ${ft(S.hAt)}</small> <button class="link" style="padding:0;font-size:12px" data-a="hreload">重新載入</button>`:''}</div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${list.length?'<button class="btn g sm" data-a="hcsv">匯出試算表</button>':''}</span></div>${S.hMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.hMsg)}</div>`:''}`
   +(list.length?list.slice(S.hp*PG,S.hp*PG+PG).map(row).join('')+`<div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px"><button class="btn g sm" data-a="hpg" data-v="-1" ${S.hp==0?'disabled':''}>上一頁</button><small>第 ${S.hp+1} / ${pages} 頁（每頁 ${PG} 筆）</small><button class="btn g sm" data-a="hpg" data-v="1" ${S.hp>=pages-1?'disabled':''}>下一頁</button></div>`:`<div class="card"><div class="empty">${(S.hq.trim()||S.hdf||S.hde)?'找不到符合的訂單':'目前沒有封存的訂單'}</div></div>`)}
