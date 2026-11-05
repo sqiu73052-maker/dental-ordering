@@ -581,12 +581,13 @@ function legend(b,c){let a=[];
   if(!a.length)return '';
   return `<div class="lg">${a.map(x=>`<span class="tag ${x[0]}">${x[1]}</span>`).join('')}<small>底色分類${grp(b,c)&&c!='MUA'?'，間隔分開不同系列或平台':''}</small></div>`}
 const stp=(k,q)=>`<div class="st"><button class="${q?'':'ghost'}" data-a="dec" data-v="${k}" aria-label="減少" ${q?'':'disabled tabindex="-1" aria-hidden="true"'}>−</button> <input class="qn ${q?'':'z'}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-qk="${k}" value="${q}" aria-label="數量"><button class="p" data-a="inc" data-v="${k}" aria-label="增加">+</button></div>`;
-const AOB=['Hiossen','Nobel','Straumann','Nobel Zygoma'];/* v310 om：加 Straumann（內容表 AOSPEC 尚未提供時，出貨單印空白表格手寫） */
+const AOB=['Hiossen','Nobel','Straumann','Nobel Zygoma'];
+const aoV=i=>{const p=AOP(i&&i.n);return !!p&&p.b=='Straumann'};/* v313 om：Straumann AO 箱不由總倉出貨，向廠商叫貨、廠商直送院所（不進今天出貨、不開出貨單、不進回收） *//* v310 om：加 Straumann（內容表 AOSPEC 尚未提供時，出貨單印空白表格手寫） */
 /* Zygoma 預設單顎；全口只有在這張訂單沒有其他品牌 AO 箱時才能選，選了 Zygoma 全口就不能再加其他品牌 */
 const zOther=()=>S.ao.some(x=>x.b!='Nobel Zygoma'),zFull=()=>S.ao.some(x=>x.b=='Nobel Zygoma'&&/ 全口 /.test(x.n));
 function aoView(){const f=S.af,z=f.b=='Nobel Zygoma',none=false;if(z&&zLn())f.rent='否';const need=z&&!f.rent,dup=S.ao.some(x=>x.b==f.b),zf=!z&&zFull(),fullOff=z&&zOther();
   const seg=(arr,cur,act)=>`<div class="seg">${arr.map(b=>`<button class="chip ${cur==b?'on':''}" data-a="${act}" data-v="${b}" aria-pressed="${cur==b}">${b}</button>`).join('')}</div>`;
-  let h=`<div class="card"><label style="margin-top:0">品牌</label>${seg(AOB,f.b,'afb')}${dup?`<div class="hint">這張訂單已加入 ${esc(f.b)} AO 箱（每個品牌限 1 箱）。如要更換內容，請先在下方移除。</div>`:''}
+  let h=`<div class="card"><label style="margin-top:0">品牌</label>${seg(AOB,f.b,'afb')}${f.b=='Straumann'?'<div class="hint">Straumann AO 箱由廠商直接送到院所，收到後請在「我的訂單」按「確認收到」。</div>':''}${dup?`<div class="hint">這張訂單已加入 ${esc(f.b)} AO 箱（每個品牌限 1 箱）。如要更換內容，請先在下方移除。</div>`:''}
   <label>型態</label><div class="seg">${['單顎','全口'].map(t=>{const off=t=='全口'&&fullOff;return `<button class="chip ${f.t==t?'on':''}" data-a="aft" data-v="${t}" aria-pressed="${f.t==t}" ${off?'disabled style="opacity:.45;cursor:default"':''}>${t}</button>`}).join('')}</div>${fullOff?'<div class="sub" style="margin:4px 0 0">已有其他品牌 AO 箱，Zygoma 只能選單顎</div>':''}${zf?'<div class="hint">這張訂單已加入 Zygoma 全口 AO 箱，不能再加入其他品牌。</div>':''}
   <label>內容（只有植體可以取消，其餘固定包含）</label><div class="seg">${AOC.map(c=>c=='植體'?`<button class="chip ${f.c[c]?'on':''}" data-a="afc" data-v="${c}" aria-pressed="${!!f.c[c]}">${f.c[c]?'✓ ':''}${c}</button>`:`<button class="chip on" disabled aria-pressed="true" style="opacity:.7;cursor:default">✓ ${c}</button>`).join('')}</div>
   ${none?'<div class="hint">至少要選一項內容</div>':''}
@@ -689,7 +690,7 @@ const bt=a=>`<div class="bt" role="tablist">${a.map((x,i)=>`<button data-a="bt" 
 function colHtml(title,n,hint,body,i){return `<div class="col ${S.bt==i?'mon':''}"><div class="oh" title="${esc(hint)}"><b>${title}</b><span class="tag t4">${n}</span></div>${body||'<div class="empty">沒有品項</div>'}</div>`}
 function perClinic(arr,row){const g=grpBy(arr,r=>dst(r.o));return Object.keys(g).map(c=>`<div class="cg">${esc(c)}</div>`+g[c].map(row).join('')).join('')}
 /* AO 箱回收追蹤：出貨後記錄每箱收回數量（Zygoma 租借器械另計），超過手術日後 N 天未收回算逾期 */
-const retItems=o=>o.items.map((i,x)=>({i,x})).filter(r=>r.i.st=='已出貨'&&(o.type=='ao'||lnI(r.i)));
+const retItems=o=>o.items.map((i,x)=>({i,x})).filter(r=>r.i.st=='已出貨'&&!aoV(r.i)&&(o.type=='ao'||lnI(r.i)));
 const rOK=i=>(i.rc||0)>=i.q&&(!i.rent||(i.rk||0)>=i.q);
 const rOpen=o=>!o.cx&&retItems(o).some(r=>!rOK(r.i));
 function rLate(o){const its=retItems(o);if(!its.length||!rOpen(o))return 0;const base=o.surg||iso(new Date(Math.max(...its.map(r=>r.i.at||Date.now()))));const due=new Date(base+'T00:00:00');const dd=new Date(addWork(base,S.rd||3)+'T00:00:00');const n=Math.floor((new Date(TODAY+'T00:00:00')-dd)/864e5);return n>0?n:0}
@@ -959,10 +960,10 @@ function vendorView(which){
       return `<div class="cg" style="display:flex;justify-content:space-between;align-items:center"><span>${v}</span><span style="display:flex;align-items:center;gap:10px"><small style="color:var(--mute);font-weight:400">${ds.length} 張 · ${q} 件</small>${ckBox('ven',gv[v],'全選','all')}</span></div><div class="vls">${ds.map(d=>ROW(gd[d],v)).join('')}</div>`}).join('');
     const ex=st=='待向廠商叫貨'&&S.vMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.vMsg)}</div>`:'';
     return `<div class="col"><div class="oh"><b>${title}</b><span class="tag ${st=='待向廠商叫貨'?'t0':'t2'}">${rows.reduce((t,r)=>t+r.i.q,0)} 件</span></div><div class="sub" style="margin:2px 0 6px">${hint}</div>${ex}${body||`<div class="empty">${VF.c||VF.b?'沒有符合篩選的品項':'目前沒有品項'}</div>`}</div>`};
-  const P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格或整個廠商全選），按下方的「匯出採購單」傳給廠商，再按「已叫貨」（送總倉）或「已叫貨・直送」（廠商直接送院所）。匯出過的品項會標「已匯出」。'),
-    C=sec('已向廠商叫貨','已向廠商叫貨，等待到貨','勾選後按「到貨」進入可出貨；標「直送院所」的，院所會在「我的訂單」按「確認收到」（超過 2 個工作天沒按會標紅），也可以勾選後按「院所已收到」，直接算已出貨、不開出貨單。按錯可以勾選後按「退回」。');
+  const P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格或整個廠商全選），按下方的「匯出採購單」傳給廠商，匯出後會自動移到「已向廠商叫貨」。用電話或其他方式叫貨的，可以直接按「已叫貨」。'),
+    C=sec('已向廠商叫貨','已向廠商叫貨，等待到貨','勾選後按「到貨」進入可出貨。Straumann AO 箱是廠商直送院所，院所收到會按「確認收到」，也可以勾選後按「院所已收到」。按錯可以勾選後按「退回」。');
   const sel=ckSel('ven',all.filter(r=>VS.includes(r.i.st)&&fOK(r))),sp=sel.filter(r=>r.i.st=='待向廠商叫貨'),sc=sel.filter(r=>r.i.st=='已向廠商叫貨'&&!r.i.dv),sd=sel.filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv),vs=[...new Set(sel.map(r=>vendorOf(r.i.n)))];
-  const bar=ckBar('ven',sel,vs.map(esc).join('、'),(sp.length?ckBtn('ven','call','已叫貨',sp.length)+ckBtn('ven','calldv','已叫貨・直送',sp.length)+`<button class="btn o sm" data-a="vcsv" data-v="merge" title="勾選的品項匯出採購單（同廠商同品項合併數量），一家供應商一個檔">匯出採購單（${sp.length}）</button>`:'')+(sc.length?ckBtn('ven','arr','到貨',sc.length):'')+(sd.length?ckBtn('ven','dir','院所已收到',sd.length):'')+(sel.length==1&&canEd(sel[0])?`<button class="btn g sm" data-a="ckgo" data-k="ven" data-v="edit">修改品名規格</button>`:'')+ckBtn('ven','back','退回',sel.filter(r=>!lockSh(r.i)).length,'o'));
+  const bar=ckBar('ven',sel,vs.map(esc).join('、'),(sp.length?ckBtn('ven','call','已叫貨',sp.length)+`<button class="btn o sm" data-a="vcsv" data-v="merge" title="勾選的品項匯出採購單（同廠商同品項合併數量），一家供應商一個檔">匯出採購單（${sp.length}）</button>`:'')+(sc.length?ckBtn('ven','arr','到貨',sc.length):'')+(sd.length?ckBtn('ven','dir','院所已收到',sd.length):'')+(sel.length==1&&canEd(sel[0])?`<button class="btn g sm" data-a="ckgo" data-k="ven" data-v="edit">修改品名規格</button>`:'')+ckBtn('ven','back','退回',sel.filter(r=>!lockSh(r.i)).length,'o'));
   return `${bar}${fbar}<div class="vg${sel.length?' hasm':''}">${P}${C}</div>`}
 function clPick(k){const sel=k=='nf'?S.nf.cs:k=='su'?S.su.cs:(S.ce?S.ce.cs:[]),v=sel.find(c=>CL.includes(c))||'';/* v287 一個帳號一家院所：改下拉選單 */
   return `<select data-s="clsel" data-k="${k}" aria-label="負責院所" style="width:100%;color:var(--ink)"><option value="" ${v?'':'selected'}>請選擇院所</option>${CL.map(c=>`<option ${c==v?'selected':''}>${esc(c)}</option>`).join('')}</select>${sel.length>1?`<small style="color:var(--rose)">原本負責 ${sel.length} 家，儲存後只保留這一家</small>`:''}`}
@@ -1472,7 +1473,7 @@ async function submitOrder(btn){
   if(need().some(k=>!String(h[k]).trim())){S.err=true;review();const m=$('suberr');if(m)m.textContent='還不能送出，請補上：'+missing(h).join('、');const b=document.querySelector('.sheet .bad');if(b)b.focus();return}
   if(!isHQ()&&items().length>MAXN){const m=$('suberr');if(m)m.textContent=`一張訂單最多 ${MAXN} 個品項，請分成兩張送出。`;return}
   const a2=items(),d=new Date(),base=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;let no=base,n2=0;while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
-  const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),rush:!!h.rush,lab:ao?'':(h.lab||''),staff:h.staff.trim()||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:ao?'總倉出貨':'待確認'}))};
+  const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),rush:!!h.rush,lab:ao?'':(h.lab||''),staff:h.staff.trim()||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:ao?(aoV(i)?'待向廠商叫貨':'總倉出貨'):'待確認',...(ao&&aoV(i)?{dv:1}:{})}))};/* v313 om：Straumann AO 箱向廠商叫貨、廠商直送院所 */
   btn.disabled=true;btn.textContent='送出中…';
   try{await Store.add(order)}catch(e){btn.disabled=false;btn.textContent='送出叫貨';const m=$('suberr');if(m)m.textContent='送出失敗，可能沒有寫入權限或連線中斷，請再試一次。';return}
   S.toast=Store.mode()=='db'?`訂單 #${no} 已送出，總倉已收到通知`:`訂單 #${no} 已儲存在這個瀏覽器，總倉出貨頁看不到`;
@@ -1593,7 +1594,7 @@ const TOURS={
   {s:['.fchs'],t:'② 可出貨：四個篩選',d:'「準備出貨」只看已開出貨單、還沒出貨的；「今天出貨」是已開單的加上今天要出、逾期的（預設看這個）；也可以切到「下個工作天」或「全部」。',pre:tourTab('board',2)},
   {s:['.board1 .sgx','.board1'],t:'勾選、開單、出貨',d:'同一個送貨地點放在同一框。勾地點標題的框會選整組，也可以只勾單張訂單。勾還沒開單的，下方出現「產生出貨單／標記已出貨／退回」，只有同一個送貨地點能合併，AO 箱要跟常規分開開單。已開出貨單的在上面「準備出貨」區，包好後勾選（或按「全選」）再按「標記已出貨」。點訂單號可以展開細節，點出貨單號可以重印；出貨單上會列出包含的訂單和患者，多張訂單時「訂單」欄用圈號對應。',pre:tourTab('board',2)},
   {s:['.tdb','.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，依叫貨院所分組。可以先按「匯出未登錄出貨品項」匯入庫存系統，再按「全選」、按下方的「✓ 已登錄」一次移走；也可以只勾部分。按錯可以按「復原」。廠商直送的不用登錄。',pre:tourTab('board',3)},
-  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「匯出採購單」（一家供應商一個檔，同品項合併數量，廠商用代號 H 奧齒泰、N 興旺、S 士卓曼），匯出過的標「已匯出」。送到總倉按「已叫貨」，請廠商直接送院所按「已叫貨・直送」；貨到按「到貨」，直送的院所收到後按「院所已收到」；按錯可以按「退回」。',pre:tourTab('vpend')},
+  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「匯出採購單」（一家供應商一個檔，同品項合併數量，廠商用代號 H 奧齒泰、N 興旺、S 士卓曼），匯出後自動移到「已向廠商叫貨」，電話叫貨的按「已叫貨」。貨到按「到貨」；按錯可以按「退回」。',pre:tourTab('vpend')},
   {s:['.cutd','.board1'],t:'AO 箱',d:'AO 箱和常規一起排在「可出貨」，訂單旁標「AO 箱」和手術日。這裡可以調整 AO 箱「本次出貨涵蓋到」哪天：下週第 2 個工作天以前的標「本週必出」，之後的標「預備」可以先揀貨。',pre:()=>{tourTab('board',2)();if(S.d3f!='all'){S.d3f='all';render()}}},
   {s:['.main > .card'],t:'回收',d:'院所寄回 AO 箱或租借器械後，在這裡登記收回數量；Zygoma 租借的器械組另外登記。手術日後超過設定的工作天還沒收回會標示逾期，天數在「設定」修改。',pre:tourTab('ret')},
   {s:['.seg.subtabs'],t:'訂單查詢',d:'用來找訂單，不標逾期顏色。「全部訂單」看每張訂單各品項走到哪一步，取消的反灰排最後、隔天自動清掉；「歷史出貨」只列已出貨的品項，按「匯出試算表」跟院所對帳。兩邊用同一組篩選：選欄位打關鍵字、選日期類型（出貨日／手術日／叫貨日）和區間，再選院所、類型。',pre:tourTab('all')},
@@ -1661,7 +1662,9 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
     if(v=='ship'){const L=pr.filter(r=>isReady(r)&&r.i.sh&&!rqOpen(r.o));done(L);if(L.length)shipItems(L.map(r=>({o:r.o,x:r.x})));else render();return}
     if(v=='edit'){const r=pr[0];if(pr.length!=1||!canEd(r))return;edOpen(r);return}
     if(v=='hq'||v=='need'){const L=pr.filter(r=>r.i.st=='待確認');done(L);if(L.length)setSt(L,v=='hq'?'總倉出貨':'待向廠商叫貨');return}
-    if(v=='call'||v=='calldv'){const L=pr.filter(r=>r.i.st=='待向廠商叫貨');done(L);if(L.length)setSt(L,'已向廠商叫貨',false,{dv:v=='calldv'?1:0});return}
+    if(v=='call'||v=='calldv'){const L=pr.filter(r=>r.i.st=='待向廠商叫貨');done(L);if(L.length)setSt(L,'已向廠商叫貨',false,v=='calldv'?{dv:1}:undefined);return}/* v313：不帶 dv，保留 Straumann AO 箱的直送標記 */
+    if(v=='todv'||v=='tohq'){const d1=v=='todv',L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&!!r.i.dv!=d1),by={};done(L);L.forEach(r=>(by[r.o.id]=by[r.o.id]||{o:r.o,xs:[]}).xs.push(r.x));S.msg='';
+      (async()=>{for(const id in by){const {o,xs}=by[id],next=o.items.map((it,j)=>xs.includes(j)?{...it,dv:d1?1:0,lg:[...(it.lg||[]).slice(-9),{s:d1?'改成廠商直送':'改成送總倉',at:Date.now(),by:who()}]}:it);o.items=next;try{await Store.update(o.id,{items:next})}catch(e){S.msg='更新失敗，可能沒有寫入權限或連線中斷，請重新整理後再試。'}}render()})();return}
     if(v=='arr'){const L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&!r.i.dv);done(L);if(L.length)setSt(L,'廠商到貨');return}
     if(v=='dir'){const L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv);done(L);if(L.length)setSt(L,'已出貨',false,{dir:1});return}
     if(v=='back'){const L=pr.filter(r=>!lockSh(r.i)&&r.i.st!='待確認'),g={};done(L);L.forEach(r=>{const pv=prevOf(r.i);(g[pv]=g[pv]||[]).push(r)});(async()=>{for(const pv in g)await setSt(g[pv],pv,true)})();return}
@@ -1708,9 +1711,10 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='vcsv'){/* 只匯出勾選的品項，一家供應商一個檔；匯出後在這些品項標「已匯出」，之後才分配進來的新品項沒有這個標記、也不會被勾到 */
     const sel=ckSel('ven',allIt().filter(r=>r.i.st=='待向廠商叫貨'));if(!sel.length)return;const ks=new Set(sel.map(kOf)),vs=[...new Set(sel.map(r=>vendorOf(r.i.n)))].sort((x,y)=>venList().indexOf(x)-venList().indexOf(y));
     (async()=>{const names=[];for(const vn of vs){const x=vendCsv(v,ks,vn);await dlFile(x.name,x.csv,'text/csv;charset=utf-8');names.push(x.name)}
-      const now=Date.now(),by={};sel.forEach(r=>{(by[r.o.id]=by[r.o.id]||{o:r.o,xs:[]}).xs.push(r.x)});
-      for(const id in by){const {o,xs}=by[id],next=o.items.map((it,j)=>xs.includes(j)&&it.st=='待向廠商叫貨'?{...it,pe:now}:it);o.items=next;await Store.update(o.id,{items:next})}
-      S.vMsg=`已匯出 ${names.length} 張採購單（${names.join('、')}），共 ${sel.length} 個品項，已標上「已匯出」。確認廠商收到後，勾選同樣的品項按「已叫貨」。`})().catch(e=>{S.vMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(render);return}
+      /* v311 om：匯出後自動歸到「已向廠商叫貨」（送總倉）；v312 om：一般叫貨不再直送，直送按鈕拿掉（舊的直送品項仍可按「院所已收到」） */
+      const now=Date.now(),L=sel.filter(r=>r.o.items[r.x]&&r.o.items[r.x].st=='待向廠商叫貨'),m=CK('ven');L.forEach(r=>delete m[kOf(r)]);
+      await setSt(L.map(r=>({o:r.o,x:r.x})),'已向廠商叫貨',false,{pe:now});
+      S.vMsg=`已匯出 ${names.length} 張採購單（${names.join('、')}），${L.length} 個品項已移到「已向廠商叫貨」。`})().catch(e=>{S.vMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(render);return}
   else if(a=='hreload'){histLoad(true);render();return}
   else if(a=='todaycsv'){const x=histCsv(S.orders.filter(o=>!o.cx),(i,o)=>needRegI({o,i}));if(!x.n){S.tdMsg='沒有尚未登錄庫存的出貨品項。';render();return}const nm=`出貨明細-${fstamp()}.xlsx`;dlFile(nm,xBook(x,y=>y.od==TODAY),XMIME).then(()=>{S.tdMsg=`已匯出 ${x.n} 個品項（${nm}）`},e=>{S.tdMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(render);return}
   else if(a=='hcsv'){if(S.hLoad||S.hErr){S.hMsg='';render();return}let x;const d=new Date(),ymd=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;if(v=='today'){const sv=[S.hq,S.hdt,S.hdf,S.hde];S.hq='';S.hdt='ship';S.hdf=S.hde=iso(d);try{x=histCsv()}finally{[S.hq,S.hdt,S.hdf,S.hde]=sv}if(!x.n){S.hMsg='今天還沒有出貨的品項。';const h=$('hlist');if(h)h.innerHTML=histList();return}}else x=histCsv();const nm=`${v=='today'?'出貨明細':'歷史出貨'}-${fstamp()}.xlsx`,rf=v=='today'?(y=>y.od==iso(d)):(y=>(!S.hdf||(y.od||'')>=S.hdf)&&(!S.hde||(y.od||'')<=S.hde));dlFile(nm,xBook(x,rf),XMIME).then(()=>{S.hMsg=`已匯出 ${x.n} 個品項（${nm}），可用 Excel 或 Google 試算表開啟。`},e=>{S.hMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(()=>{const h=$('hlist');if(h)h.innerHTML=histList()});return}
