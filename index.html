@@ -294,9 +294,7 @@ tr.sp>td{height:12px;padding:0;box-shadow:none}
 </div>
 <div id="bar"></div>
 <div id="modal"></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
 <script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};</script>
 <script>
 const BR=['Hiossen','Nobel','耗材','器械租借'];
@@ -361,6 +359,7 @@ const Store=(()=>{
   const lwrite=a=>{mem=a;try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
   const emit=a=>{cache=sortDesc(a);subs.forEach(f=>f(cache,mode))};
   const init=()=>init.p||(init.p=(async()=>{
+    if(window.FBLOAD)await window.FBLOAD;/* v338 Firebase SDK 改成非同步載入（有備援），等它載完再連線 */
     if(window.FBCFG&&window.firebase){try{firebase.initializeApp(window.FBCFG)}catch(e){}fdb=firebase.firestore();col=fdb.collection('orders');scol=fdb.collection('settings');acol=fdb.collection('accounts');shcol=fdb.collection('shipments');mode='db';fbm=true;aload=false;emit([]);shemit();csubs.forEach(f=>f(cfg));return}
     try{const c=window.claude;const db=c&&c.use?await c.use('db'):null;if(db){col=db.collection('orders');scol=db.collection('settings');acol=db.collection('accounts');shcol=db.collection('shipments')}}catch(e){col=null}
     mode=col?'db':'local';
@@ -379,7 +378,7 @@ const Store=(()=>{
     U.push(scol.doc('ship').onSnapshot(d=>{cfg=d.exists?JSON.parse(JSON.stringify(d.data())):{};csubs.forEach(f=>f(cfg))},()=>{}));
     if(me.role=='admin')U.push(acol.onSnapshot(sn=>{accs=dmap(sn);aload=true;aemit()},()=>{}));else{accs=[{...me}];aload=true;aemit()}
     if(hq){U.push(shcol.onSnapshot(sn=>{shs=dmap(sn);shemit()},()=>{}));U.push(col.orderBy('createdAt','desc').limit(500).onSnapshot(sn=>emit(dmap(sn)),er))}
-    else{const cl=cls(me),mp={};cl.forEach(c=>U.push(col.where('clinic','==',c).limit(300).onSnapshot(sn=>{mp[c]=dmap(sn);emit([].concat(...Object.values(mp)))},er)));if(!cl.length)emit([])}};
+    else{const cl=cls(me).slice(0,1)/* v338 規則只讓院所讀第一家（2026-11-04 rules）；舊帳號設多家時第二家的查詢會被擋，整個清單變錯誤 */,mp={};cl.forEach(c=>U.push(col.where('clinic','==',c).limit(300).onSnapshot(sn=>{mp[c]=dmap(sn);emit([].concat(...Object.values(mp)))},er)));if(!cl.length)emit([])}};
   const remove=async id=>{await init();if(mode=='db')await col.doc(id).delete();else{const a=lread().filter(x=>x.id!=id);lwrite(a);emit(a)}};
   return{
     mode:()=>mode,ready:()=>init(),fdb:()=>fdb,attach:fattach,detach:fdetach,
@@ -803,18 +802,19 @@ async function rxGo(v){const m=CK('rx');if(v=='no'){S.rxNo2=true;return render()
 const XCAT=['植體','套件等','耗材','器械叫貨','器械租借','AO箱'];
 const xCat=(o,i)=>lnI(i)?'器械租借':o.type=='ao'?'AO箱':(c=>c=='耗材'?'耗材':c=='器械'?'器械叫貨':c=='植體'?'植體':'套件等')(itemCols(i.n)[1]);
 /* v332 om：庫存系統 進出庫 用。院所退回入庫＝按「已收到退貨」那天；管理處換貨出庫＝按「換貨已寄出」那天（不收費），名稱跟庫存系統 進出庫 類型一致（v333） */
+const P7H=['品牌','類別','系統','系列','品名','尺寸','品號'];
 const rxAt=(x,st)=>{const e=(x.lg||[]).filter(l=>l.s==st).pop();return e?e.at:0},rxInR=(t,f,e)=>{if(!t)return false;const d=iso(new Date(t));return (!f||d>=f)&&(!e||d<=e)};
 const rxToN=t=>{const ch=codeHit(t);return ch?(ch.n.toLowerCase().startsWith(ch.b.toLowerCase())?ch.n:ch.b+' '+ch.n):t};
 function rxIO(f,e){const L=(S.rx||[]).slice().sort((a,b)=>String(a.no).localeCompare(String(b.no))),DT=t=>{const d=new Date(t);return `${iso(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
-  const V=[],IH=['入庫日期','類型','退換貨單號','院所','品牌','類別','品名','規格','品號','數量','退貨／換貨','原因','原訂單號','品項備註'],I=[];
-  const OH=['出庫日期','類型','退換貨單號','院所','品名','規格','品號','數量','換下的品項','品項備註','備註'],O=[];
+  const V=[],IH=['入庫日期','類型','退換貨單號','院所',...P7H,'數量','退貨／換貨','原因','原訂單號','品項備註'],I=[];
+  const OH=['出庫日期','類型','退換貨單號','院所',...P7H,'數量','換下的品項','品項備註','備註'],O=[];
   L.forEach(x=>{const ga=rxAt(x,'已收到退貨'),xa=rxAt(x,'已寄出換貨');(x.items||[]).forEach(y=>{
-    if(rxInR(ga,f,e)){const q=p3(y.n);(x.rd=='廠商'?V:I).push([DT(ga),x.rd=='廠商'?'退回廠商（不入庫）':'院所退回入庫',`="${x.no}"`,x.clinic,y.b||'',y.c||'',q.n,q.s,q.p,+y.q||0,y.k,y.w,y.ono?`="${y.ono}"`:'',y.nt||''])}
+    if(rxInR(ga,f,e)){(x.rd=='廠商'?V:I).push([DT(ga),x.rd=='廠商'?'退回廠商（不入庫）':'院所退回入庫',`="${x.no}"`,x.clinic,...P7(y.n),+y.q||0,y.k,y.w,y.ono?`="${y.ono}"`:'',y.nt||''])}
   })});
   return {I:[IH,...I],V:[IH,...V],n:I.length+V.length}}
 const rxIOBox=()=>{const f=S.rxf1??TODAY,e=S.rxe1??TODAY;return `<div class="rxio" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 0"><small>入出庫日期</small><input type="date" data-s="rxf1" value="${esc(f)}" style="width:auto"><small>到</small><input type="date" data-s="rxe1" value="${esc(e)}" style="width:auto"><button class="btn o sm" data-a="rxio">匯出退貨入庫 Excel</button></div>${S.rxioMsg?`<div class="sub" style="margin:6px 0 0;color:var(--ok)">${esc(S.rxioMsg)}</div>`:''}`};
-const RXH=['退換貨單號','狀態','院所','申請日','申請人','退貨／換貨','原因','品牌','類別','品名','規格','品號','數量','換成','品項備註','原訂單號','原出貨單號','換貨訂單號','院所說明','總倉回覆'];
-const rxRows=f=>{const R=[];(S.rx||[]).filter(f||(()=>true)).sort((a,b)=>String(a.no).localeCompare(String(b.no))).forEach(x=>(x.items||[]).forEach(y=>R.push([`="${x.no}"`,rxSt(x),x.clinic,x.od||'',x.staff||x.by||'',y.k,y.w,y.b||'',y.c||'',...(p=>[p.n,p.s,p.p])(p3(y.n)),+y.q||0,y.to||'',y.nt||'',y.ono?`="${y.ono}"`:'',y.sh||'',x.xno?`="${x.xno}"`:'',x.note||'',x.hn||''])));return R};
+const RXH=['退換貨單號','狀態','院所','申請日','申請人','退貨／換貨','原因',...P7H,'數量','換成','品項備註','原訂單號','原出貨單號','換貨訂單號','院所說明','總倉回覆'];
+const rxRows=f=>{const R=[];(S.rx||[]).filter(f||(()=>true)).sort((a,b)=>String(a.no).localeCompare(String(b.no))).forEach(x=>(x.items||[]).forEach(y=>R.push([`="${x.no}"`,rxSt(x),x.clinic,x.od||'',x.staff||x.by||'',y.k,y.w,...P7(y.n),+y.q||0,y.to||'',y.nt||'',y.ono?`="${y.ono}"`:'',y.sh||'',x.xno?`="${x.xno}"`:'',x.note||'',x.hn||''])));return R};
 const xBook=(x,rf)=>xlsx([{name:'全部',rows:[x.H,...x.R]},...XCAT.map(c=>({name:c,rows:[x.H,...x.R.filter((r,k)=>x.C[k]==c)]}))]);/* v332 om：退換貨的入出庫改在退換貨頁匯出 */
 const XMIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 function xlsx(sheets){const enc=new TextEncoder(),X=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,''),HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='http://schemas.openxmlformats.org/',CT=NS+'officeDocument/2006/relationships/';
@@ -952,16 +952,16 @@ function vendCsv(kind,only,ven,cl){const rows=allIt().filter(r=>r.i.st=='待向�
   const VL=venList(),vo=v=>{const k=VL.indexOf(v);return k<0?99:k},ord=(x,y)=>vo(vendorOf(x.i.n))-vo(vendorOf(y.i.n))||itemRank(x.i.n)-itemRank(y.i.n)||brandRank(x.i.n)-brandRank(y.i.n)||String(dn(x.i.n)).localeCompare(dn(y.i.n),'en',{numeric:true})||String(x.o.no).localeCompare(String(y.o.no));
   rows.sort(ord);const g=new Map();rows.forEach(r=>{const k=key(r);if(!g.has(k))g.set(k,[]);g.get(k).push(r)});const tot=rs=>rs.reduce((t,r)=>t+r.i.q,0);
   const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',D=TODAY;let H,R=[];
-  if(kind=='merge'){H=['廠商','院所','品名','規格','品號','備註','合計數量','訂單數','來源訂單（訂單號×數量）'];
-    [...g.values()].forEach(rs=>{const r=rs[0];const x=p3(r.i.n);R.push([vcode(vendorOf(r.i.n)),cl||[...new Set(rs.map(y=>y.o.clinic))].join('、'),x.n,x.s,x.p,tag(r.i,r.o),tot(rs),new Set(rs.map(x=>x.o.no)).size,rs.map(x=>`${x.o.no}×${x.i.q}（${dst(x.o)}）`).join('、')])})}
+  if(kind=='merge'){H=['廠商','院所',...P7H,'備註','合計數量','訂單數','來源訂單（訂單號×數量）'];
+    [...g.values()].forEach(rs=>{const r=rs[0];R.push([vcode(vendorOf(r.i.n)),cl||[...new Set(rs.map(y=>y.o.clinic))].join('、'),...P7(r.i.n),tag(r.i,r.o),tot(rs),new Set(rs.map(x=>x.o.no)).size,rs.map(x=>`${x.o.no}×${x.i.q}（${dst(x.o)}）`).join('、')])})}
   else{/* 匯入庫存系統用：品名、規格、數量、叫貨廠商、叫貨院所、院所叫貨日期、總倉向廠商叫貨日期、到貨狀況。
       範圍＝廠商叫貨頁上全部品項（待叫貨＋已叫貨待到貨）＋近 30 天到貨的；一個訂單品項一列 */
     const lgAt=(i,f)=>{const e=(i.lg||[]).filter(f).pop();return e?e.at:0},caOf=i=>i.ca||lgAt(i,l=>l.s=='已向廠商叫貨'),raOf=i=>i.ra||lgAt(i,l=>l.s=='廠商到貨'||(l.s=='已出貨'&&l.dir)),
       DT=t=>{if(!t)return '';const d=new Date(t);return `${iso(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`},
       vs=allIt().filter(r=>{const i=r.i;if(['待向廠商叫貨','已向廠商叫貨'].includes(i.st))return true;const ra=raOf(i);return !!caOf(i)&&!!ra&&Date.now()-ra<30*864e5}).sort(ord);
-    H=['訂單號','品名','規格','品號','數量','叫貨廠商','叫貨院所','院所叫貨日期','總倉向廠商叫貨日期','到貨狀況','備註'];
-    vs.forEach(r=>{const i=r.i,o=r.o,x=p3(i.n),ra=raOf(i),ca=caOf(i);
-      R.push([`="${o.no}"`,x.n,x.s,x.p,i.q,vendorOf(i.n),o.clinic,o.od||'',i.st=='待向廠商叫貨'?'':DT(ca),
+    H=['訂單號',...P7H,'數量','叫貨廠商','叫貨院所','院所叫貨日期','總倉向廠商叫貨日期','到貨狀況','備註'];
+    vs.forEach(r=>{const i=r.i,o=r.o,ra=raOf(i),ca=caOf(i);
+      R.push([`="${o.no}"`,...P7(i.n),i.q,vendorOf(i.n),o.clinic,o.od||'',i.st=='待向廠商叫貨'?'':DT(ca),
         i.st=='待向廠商叫貨'?'尚未叫貨':i.st=='已向廠商叫貨'?(i.dv?'待到貨（直送院所）':'待到貨'):(i.dir||i.dv?'院所已收到 ':'已到貨 ')+DT(ra),tag(i,o)])});
     return {n:vs.length,g:new Set(vs.map(key)).size,H,R,name:`向廠商叫貨-訂單明細-${fstamp()}.xlsx`,csv:'﻿'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
   return {n:rows.length,g:g.size,H,R,name:`${kind=='merge'?'採購單':'向廠商叫貨-訂單明細'}-${cl?cl+'-':''}${ven?(kind=='merge'?vcode(ven):ven)+'-':''}${fstamp()}.xlsx`,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
@@ -1132,10 +1132,29 @@ function p3(n0){const ao=AOP(n0);if(ao)return {n:ao.b+' AO 箱',s:[ao.t,ao.off.l
   if(c=='植體'){if(b=='Hiossen'&&!sr.length)sr=['ETIII SA',/^AET3M/.test(p)||/^3\.[25]\*/.test(sp)?'Mini':'Regular'];
     if(b=='Nobel')sr=sr.map(w=>/^act$/i.test(w)?'NobelActive':/^pcc$/i.test(w)?'NobelParallel CC':w)}
   return {n:[b,c,...sr].filter(Boolean).join(' '),s:sp,p}}
+/* v336 om：匯出拆成 品牌｜類別｜系統｜系列｜品名｜尺寸｜品號（比照特殊規格表單；對帳看價格用）。名稱以 om 給的型錄為準：有品號就用型錄同品號那一列（常備品若特殊規格有同品號，系統／系列從那列取）；院所畫面文字不變 */
+function p7(n0){const q=p3(n0),ao=AOP(n0);
+  if(ao)return {b:ao.b.startsWith('Nobel')?'Nobel':ao.b,c:'AO箱',y:'',l:(ao.b=='Nobel Zygoma'?'Zygoma ':'')+ao.t,n:'AO 箱',s:[ao.off.length?'不含'+ao.off.join('、'):'',ao.rent?'租借器械':''].filter(Boolean).join(' '),p:''};
+  let [b,c,r]=itemCols(n0);if(c=='耗材'||c=='器械租借')return {b,c,y:'',l:'',n:(r||dn(n0)).replace(/（特殊規格）|（型錄外）/g,'').trim(),s:'',p:q.p};
+  let hit=q.p&&codeIdx()[codeKey(q.p)];if(!hit&&SPCAT[b]){const t=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').replace(/^(\(H\)|\(N\)|Hiossen|Nobel|Straumann)\s+/i,'').trim().toLowerCase();for(const cc in SPCAT[b]){const f=SPCAT[b][cc].find(x=>x.replace(/\s*\([^)]*\)/g,'').trim().toLowerCase()==t.replace(/\s*\([^)]*\)/g,'').trim());if(f){hit={b,c:cc,n:f};break}}}/* 品號重複的用型錄全名找 */
+  const reg=!!RCODE[dn(n0).trim()]||!!RCODE[String(n0).trim()];let nm;
+  if(hit){b=hit.b;c=hit.c;nm=hit.n.replace(/\s*\([^)]*\)/g,' ')}else nm=[q.n,q.s].join(' ').replace(/\s*\([^)]*\)/g,' ');
+  if(c=='植體'&&!hit&&b=='Nobel')nm=nm.replace(/\bNobelActive\b/,'ACT').replace(/\bNobelParallel CC\b/,'PCC');
+  const BW=/^(\(H\)|\(N\)|Hiossen|Nobel|Straumann|植體)$/i;let ws=nm.split(/\s+/).filter(w=>w&&!BW.test(w)&&!(q.p&&w==q.p)),y='';
+  const sysOf=L=>{if(b=='Straumann'){let j=L.findIndex((w,k)=>/^(BLX|BLT)$/i.test(w)&&/^(NC|RC|RB|WB)$/i.test(L[k+1]||''));if(j>=0)return [j,2,L[j].toUpperCase()+' '+L[j+1].toUpperCase()];j=L.findIndex(w=>/^(NC|RC|RB|WB|RB\/WB)$/i.test(w));return j>=0?[j,1,L[j].toUpperCase()]:null}
+    if(b=='Nobel'){const j=L.findIndex(w=>/^(NP|RP|WP|3\.0)$/i.test(w));return j>=0?[j,1,L[j].toUpperCase()]:null}
+    if(b=='Hiossen'){const j=L.findIndex(w=>/^(Mini|Regular|Wide|M|R|W)$/.test(w));return j>=0?[j,1,{M:'Mini',R:'Regular',W:'Wide'}[L[j]]||L[j]]:null}return null};
+  const sy=sysOf(ws);if(sy){ws.splice(sy[0],sy[1]);y=sy[2]}
+  const isz=c=='植體'?w=>/\d\*\d|^\d+(\.\d+)?mm$|^[PG]\d/.test(w):w=>/^[\dØø]/.test(w)||/^(H|L|GH|AH)\d/.test(w);/* 植體的角度（Zygoma 0°）算系列 */
+  let s=ws.filter(isz).join(' '),rest=ws.filter(w=>!isz(w)).join(' ');
+  if(reg&&q.s){const L=q.s.split(/\s+/),z=sysOf(L);if(z){L.splice(z[0],z[1]);y=y||z[2]}s=L.join(' ')}/* 常備品尺寸照常備型錄寫法（如 MUA 0°2） */
+  if(!y&&b=='Hiossen'&&/^A?ET3([MR])/.test(q.p))y=/^A?ET3M/.test(q.p)?'Mini':'Regular';
+  return c=='植體'?{b,c,y,l:rest,n:'',s,p:q.p}:{b,c,y,l:'',n:rest,s,p:q.p}}
+const P7=n=>{const x=p7(n);return [x.b,x.c,x.y,x.l,x.n,x.s,x.p]};
 const tag=(i,o)=>[i.sp?'特殊規格':'',/（型錄外）/.test(i.n)?'型錄外':'',o&&o.type=='ao'?'AO箱':''].filter(Boolean).join('、');
 function histCsv(os,f){os=os||histFiltered();f=f||shipIn;const D=t=>t?iso(new Date(t)):'',lgAt=(i,st)=>{const e=(i.lg||[]).filter(x=>x.s==st).pop();return e?D(e.at):''};
-  const H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫生','品名','規格','品號','特殊規格','數量','出貨單號','出貨日','AO回收','備註','登記人員'];
-  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,o.rxno?'管理處換貨出庫':lnI(i)?'器械租借':o.type=='ao'?'AO箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...(x=>[x.n,x.s,x.p])(p3(i.n)),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||''])));
+  const H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫生',...P7H,'特殊規格','數量','出貨單號','出貨日','AO回收','備註','登記人員'];
+  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,o.rxno?'管理處換貨出庫':lnI(i)?'器械租借':o.type=='ao'?'AO箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...P7(i.n),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||''])));
   const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';/* 每格都加引號：試算表若把空白當分隔符號也不會拆欄 */
   return {n:R.length,H,R,C,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
 async function dlFile(filename,data,type){let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
@@ -1353,6 +1372,7 @@ const SPALIAS={"Closure cap RC H0 (024.4100S)":["cover screw","BLT cover screw",
 const spTok=x=>String(x||'').toLowerCase().replace(/\bsp\b/g,'tl').replace(/\b(nobel\s*)?active\b/g,'act').replace(/\b(nobel\s*)?parallel\b/g,'pcc').replace(/\bmini\b/g,'m').replace(/\bregular\b/g,'r').replace(/[øφΦØ°º˚度]|mm/g,' ')/* v304 om：「度」很難打，角度符號一律當空白，17°3＝17度3＝17 3 */.replace(/(\d)\s*[x×*]\s*(?=\d)/g,'$1 ').replace(/([a-z])(?=\d)|(\d)(?=[a-z])/g,'$1$2 ').split(/[^a-z0-9.°\u4e00-\u9fff]+/).filter(Boolean).map(t=>/^\d+(\.\d+)?$/.test(t)?String(parseFloat(t)):t);
 const sysTok=y=>spTok(y).filter(t=>!/^\d/.test(t));/* 系統比對只看英文代號（Nobel 3.0 另外處理） */
 function spCands(r,all){const B=SPCAT[r.b]||{},L=(!all&&B[r.c]&&B[r.c].length?[[r.c,B[r.c]]]:all||r.c=='其他'?Object.entries(B):[])/* v281 只推同類別（其他＝全部找） */;const out=[];L.forEach(([c,a])=>a.forEach(n=>{const t2=spTok(n.replace(/\([^)]*\)/g,' ').replace(/^Transfer Abutment /,''));out.push({c,n,t:spTok(n),t2});(SPALIAS[n]||[]).forEach(al=>out.push({c,n,t:spTok(al),t2:spTok(al),al:1}))}));
+  if(r.b=='Hiossen'){const pr=x=>/^ETIII SA\b/.test(x.n)?0:1;out.sort((x,y)=>pr(x)-pr(y))}/* v336 om：Hiossen 常備是 ETIII SA（AET3…），建議和系列都排最前面 */
   const o2=r.ln&&r.c=='植體'?out.filter(x=>x.c!='植體'||lnKey(x.n)==r.ln):out;if(!r.y)return o2;const ys=sysTok(r.y);return o2.filter(x=>{const c=x.t.filter(t=>CONN.includes(t)),l=x.t.filter(t=>LINE.includes(t));if(r.b=='Nobel'){const pf=n30(x.n);if(pf&&pf!=r.y)return false}return (!c.length||c.some(t=>ys.includes(t)))&&l.every(t=>ys.includes(t))})}
 /* 植體只打尺寸（v278 om）：選系列後打「4.0*10」就自動對到型錄完整品名，不用院所去點長品名 */
 const lnKey=n=>n.replace(/\s*\([^)]*\)/g,'').replace(/\s*\d+(\.\d+)?\s*\*\s*\d+(\.\d+)?.*$/,'').replace(/\s+\d+(\.\d+)?mm$/,'').trim(),szN=v=>String(+v);
@@ -1939,7 +1959,7 @@ Store.subscribe((list0,mode)=>{const mc=S.mode!=mode;const list=list0.filter(o=>
   if(MODE=='ship'){const a=document.activeElement;if(a&&a.tagName=='SELECT'&&$('app').contains(a))S.pend=true;else render()}
   else if((mc||S.view=='mine')&&!$('modal').innerHTML)render()});
 render();
-if(FB)fbBoot();
+if(FB)(window.FBLOAD||Promise.resolve()).then(()=>fbBoot());
 
 ;(()=>{const up=()=>document.querySelectorAll(".chips.cats").forEach(c=>{const m=c.scrollWidth-c.clientWidth;c.classList.toggle("fl",m>2&&c.scrollLeft>2);c.classList.toggle("fr",m>2&&c.scrollLeft<m-2)});const go=()=>{const a=document.getElementById("app");if(!a)return setTimeout(go,50);new MutationObserver(up).observe(a,{childList:true,subtree:true});document.addEventListener("scroll",e=>{if(e.target.classList&&e.target.classList.contains("cats"))up()},true);addEventListener("resize",up);up()};go()})();
 </script>
