@@ -388,6 +388,7 @@ const Store=(()=>{
        規則還沒有 ordno 時（舊規則）退回不佔號直接存，避免院所叫不了貨。o.no 會改成最後用到的單號 */
     async add(o){await init();const base=o.no,sfx='bcdefghijk';let no=base,err=null;
       const mk=n=>{const id=n+'-'+Math.random().toString(36).slice(2,5);return {id,doc:JSON.parse(JSON.stringify(withLs({...o,no:n,createdAt:Date.now()})))}};
+      if(o.rxno&&base==o.rxno){/* v334：換貨出貨單沿用 R 退換貨單號（R 號已由退換貨單佔用），不另佔號 */const {id,doc}=mk(base);if(mode=='db')await col.doc(id).set(doc);else{const a=lread();a.push({id,...doc});lwrite(a);emit(a)}return id}
       if(mode=='db'){for(let k=0;k<6;k++){const {id,doc}=mk(no);try{const b=fdb.batch();b.set(col.doc(id),doc);b.set(fdb.collection('ordno').doc(String(no)),{at:Date.now(),clinic:o.clinic||''});await b.commit();o.no=no;return id}catch(e){err=e;if(!e||e.code!='permission-denied')throw e;no=base+sfx[k]}}
         /* 6 次都被拒＝多半是規則還沒加 ordno：不佔號直接存 */const {id,doc}=mk(base);await col.doc(id).set(doc);o.no=base;return id}
       const a=lread();let k=0;while(a.some(x=>x.no==no)&&k<10)no=base+sfx[k++];const {id,doc}=mk(no);a.push({id,...doc});lwrite(a);emit(a);o.no=no;return id},
@@ -484,7 +485,7 @@ function editBox(o){
   if(e.k=='re')return `<div class="hint" style="margin-top:8px"><b>修改訂單</b><div class="sub" style="margin:2px 0 0">${ao&&!lockO(o)?'AO 箱只能改日期，要換箱請取消後重新叫貨。':'總倉已向廠商叫貨或已開出貨單，只能改日期；要取消請按「申請取消」。'}</div><div class="g2" style="margin-top:6px">${ao?`<div><label>新的手術日期與時間</label>${surgBox(e.surg,e.surgT,'data-s="ev" data-k="surgdt"','e',e.bad&&!(e.surg&&e.surgT)?'bad':'')}</div>`:''}<div><label>新的預估到貨日</label><input type="date" min="${TODAY}" data-s="ev" data-k="eta" value="${esc(e.eta)}" class="${e.bad&&!e.eta?'bad':''}"></div></div>${e.bad?'<div class="wn" style="margin-top:6px">請填入日期</div>':''}${ao&&e.surg&&e.eta&&e.eta>e.surg?'<div class="wn" style="margin-top:6px">到貨日晚於手術日，請確認時間來得及。</div>':''}<div style="display:flex;gap:8px;margin-top:8px"><button class="btn g" style="flex:1" data-a="edclose">先不改</button><button class="btn" style="flex:1" data-a="resave" data-o="${esc(o.id)}">儲存修改</button></div></div>`;
   return `<div class="hint" style="margin-top:8px"><b>${e.rb?'取消這張訂單並重新叫貨？':'取消這張訂單？'}</b>${e.rb?'<div class="sub" style="margin:4px 0 0">取消後，這張訂單的品項會自動放進購物車，你可以修改數量或增減品項，再重新送出。</div>':''}<div style="margin-top:6px"><label>原因</label><select data-s="cxr">${CXR.map(r=>`<option ${r==e.reason?'selected':''}>${r}</option>`).join('')}</select></div>${inV?'<div class="wn" style="margin-top:6px">部分品項已向廠商叫貨，取消後會列在「已取消」提醒，記得向廠商確認。</div>':''}<div style="display:flex;gap:8px;margin-top:8px"><button class="btn g" style="flex:1" data-a="edclose">不取消</button><button class="btn" style="flex:1" data-a="cxgo" data-o="${esc(o.id)}">${e.rb?'確認取消並重新叫貨':'確認取消訂單'}</button></div></div>`}
 function minePage(){
-  const mine=S.orders.filter(o=>mineOK(o)&&cxVis(o)&&mtOK(o)).slice().sort((a,b)=>(!!a.cx-!!b.cx)||(b.createdAt||0)-(a.createdAt||0)),done=odone;
+  const mine=S.orders.filter(o=>mineOK(o)&&cxVis(o)&&mtOK(o)&&!o.rxno).slice().sort((a,b)=>(!!a.cx-!!b.cx)||(b.createdAt||0)-(a.createdAt||0)),done=odone;
   if(S.mf=='退換貨')S.mf='進行中';const list=mine.filter(o=>S.mf=='全部'||(S.mf=='已完成'?done(o):!done(o)));
   const cn=f=>mine.filter(o=>f=='全部'||(f=='已完成'?done(o):!done(o))).length;
   let h=head('我的訂單','查看 '+mclTxt()+' 叫的貨目前進度，總倉更新狀態後這裡會即時變化')+`<div class="chips" style="padding-top:10px">${['進行中','已完成','全部'].map(f=>`<button class="chip ${S.mf==f?'on':''}" data-a="mf" data-v="${f}" aria-pressed="${S.mf==f}">${f}（${cn(f)}）</button>`).join('')}</div>`;
@@ -639,7 +640,7 @@ function clinic(){
   return h}
 const READY=['總倉出貨','廠商到貨'];
 /* v329 om：貨運單號點一下或按「複製」就複製；院所我的訂單也顯示（v318 只有總倉訂單查詢有） */
-const tnLine=o=>{const tns=[...new Set(o.items.filter(i=>!i.cx).map(i=>i.tn).filter(Boolean))];return tns.length?`<div class="sub tnw" style="margin:6px 0 0">🚚 貨運單號：${tns.map(x=>`<button class="tncp" data-a="tncp" data-v="${esc(x)}" title="點一下複製"><b>${esc(x)}</b><span>複製</span></button>`).join(' ')}</div>`:''};
+/* v335 om：總倉不需要複製鈕，只顯示單號 */const tnLine=o=>{const tns=[...new Set(o.items.filter(i=>!i.cx).map(i=>i.tn).filter(Boolean))];return tns.length?`<div class="sub tnw" style="margin:6px 0 0">🚚 貨運單號：${isHQ()?tns.map(x=>`<b>${esc(x)}</b>`).join('、'):tns.map(x=>`<button class="tncp" data-a="tncp" data-v="${esc(x)}" title="點一下複製"><b>${esc(x)}</b><span>複製</span></button>`).join(' ')}</div>`:''};
 async function tnCopy(t,v){let ok=false;try{await navigator.clipboard.writeText(v);ok=true}catch(e){try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e2){}}
   const sp=t.querySelector('span');if(!sp)return;sp.textContent=ok?'✓ 已複製':'請長按單號複製';t.classList.toggle('ok',ok);clearTimeout(t._tm);t._tm=setTimeout(()=>{sp.textContent='複製';t.classList.remove('ok')},1800)}
 function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o.items.length&&!o.cx;
@@ -725,13 +726,14 @@ function retView(){if(S.rs!='done')S.rs='open';/* v297 om：只分 未收回／�
 /* v287 退換貨（om）：院所對已出貨的品項申請退貨或換貨（沒用到、想換尺寸、瑕疵故障…），以申請為主，總倉審核。
    存成 type:'rx' 的文件，跟訂單同一個 collection（院所權限不用改）；放在 S.rx，不會混進出貨流程 */
 const RXW=['沒有使用','想換尺寸','瑕疵／故障','其他'],RXB=['Hiossen','Nobel','Straumann','其他'],RXC=['植體','HAB','Transfer','Analog','Abutment','MUA','Screw','Driver','scanbody','器械','耗材','其他'];
-const rxSt=x=>x.st||'申請中',rxOpen=x=>['申請中','已同意','已收到退貨'].includes(rxSt(x)),rxReq=()=>(S.rx||[]).filter(x=>rxSt(x)=='申請中');
+const rxSt=x=>x.st||'申請中',rxOpen=x=>['申請中','已同意','已收到退貨','已寄出換貨'].includes(rxSt(x)),rxHasX=x=>(x.items||[]).some(y=>y.k=='換貨'),rxReq=()=>(S.rx||[]).filter(x=>rxSt(x)=='申請中');
+const rxXProg=x=>{const o=S.orders.find(y=>y.rxno==x.no&&!y.cx);if(!o)return rxSt(x)=='已寄出換貨'?'<div class="sub" style="margin:6px 0 0;color:var(--ok)">總倉已寄出換貨品項</div>':'';return `<div class="rxxp" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--bg)"><b style="font-size:13px">換貨品項出貨進度</b>${isHQ()&&o.no!=x.no?` <small>（訂單 #${esc(o.no)}）</small>`:''}${o.items.map(i=>{const l=myLabel(o,i);return `<div style="margin-top:4px"><span class="tag ${l[1]}">${esc(l[0])}</span> ${esc(dn(i.n))} × ${i.q}</div>`}).join('')}${tnLine(o)}</div>`};
 const rxTag=x=>{const s=rxSt(x);return `<span class="tag ${s=='申請中'?'t0':s=='不同意'?'t2':s=='已完成'?'t1':'t3'}">${s}</span>`};
 const rxMine=()=>(S.rx||[]).filter(mineOK).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 const rxBack=()=>A.me&&A.me.role=='clinic'?(S.rx||[]).filter(x=>rxSt(x)=='已同意'&&cls(A.me).includes(x.clinic)):[];
 function rxCard(x,hq){const its=x.items||[];return `<div class="oh"><b>#${esc(x.no)} ${hq||myCl().length>1?esc(x.clinic):''} ${rxTag(x)}</b><small style="white-space:nowrap">${md(x.od)} 申請</small></div>
   ${its.map(y=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><span class="tag ${y.k=='換貨'?'t3':'t4'}">${esc(y.k)}</span> <b style="font-weight:600">${esc(dn(y.n))} × ${y.q}</b><div class="sub" style="margin:2px 0 0">${esc(y.w)}${y.to?` · 換成 <b>${esc(y.to)}</b>`:''}${y.ono?' · ':''}${y.ono?'原訂單 #'+esc(y.ono):''}${y.sh?' · 出貨單 '+esc(y.sh):''}</div>${y.nt?`<div class="sub" style="margin:2px 0 0">備註：${esc(y.nt)}</div>`:''}</div>`).join('')}
-  ${x.note?`<div class="sub" style="margin:6px 0 0">院所說明：${esc(x.note)}</div>`:''}${x.hn?`<div class="hint" style="margin:6px 0 0">總倉回覆：${esc(x.hn)}</div>`:''}${x.xno?`<div class="sub" style="margin:6px 0 0">換貨訂單 #${esc(x.xno)}（已自動叫貨）</div>`:''}
+  ${x.note?`<div class="sub" style="margin:6px 0 0">院所說明：${esc(x.note)}</div>`:''}${x.hn?`<div class="hint" style="margin:6px 0 0">總倉回覆：${esc(x.hn)}</div>`:''}${x.rd&&isHQ()?`<div class="sub" style="margin:6px 0 0">退回品項：${x.rd=='廠商'?'退回廠商':'總倉收著'}</div>`:''}${rxXProg(x)}
   <small style="color:var(--mute)">${esc(x.staff||x.by||'')}${(x.lg||[]).slice(1).map(l=>` · ${esc(l.s)} ${ft(l.at)}`).join('')}</small>`}
 function rxMinePage(){const L=rxMine();return `<div class="card"><button class="btn" style="width:100%" data-a="rxnew">＋ 申請退換貨</button><p class="sub" style="margin:6px 0 0">品項沒用到、想換尺寸，或有瑕疵故障，都可以在這裡申請，送出後會產生退換貨單號，總倉確認後狀態會更新。AO 箱和租借器械請照原本方式寄回。</p></div>`
   +(L.length?L.map(x=>`<div class="card">${rxCard(x)}${rxSt(x)=='已同意'?'<div class="hint" style="margin:6px 0 0">總倉已同意，請把品項寄回管理處。</div>':''}</div>`).join(''):'<div class="card"><div class="empty">還沒有退換貨申請。</div></div>')}
@@ -746,7 +748,7 @@ function rxForm(){const f=S.rxf,P=[];/* v290 om：不從訂單選，院所自己
     ${m.k=='換貨'?`<input data-rx="mto" data-i="${j}" value="${esc(m.to)}" placeholder="要換成什麼？例如：同款 4.5*10" autocomplete="off" style="margin-top:6px" class="${f.err&&m.n.trim()&&!m.to.trim()?'bad':''}" aria-label="要換成的品項">`:''}
     <input data-rx="mnt" data-i="${j}" value="${esc(m.nt||'')}" placeholder="${m.w=='其他'?'原因選「其他」，請寫理由（必填）':'備註（選填），例如：已拆封、瑕疵狀況'}" autocomplete="off" maxlength="80" style="margin-top:6px" class="${f.err&&m.n.trim()&&m.w=='其他'&&!String(m.nt||'').trim()?'bad':''}" aria-label="${m.w=='其他'?'理由（必填）':'品項備註'}"></div></div>`};
   const sc=document.querySelector('#modal .sheet'),top=sc?sc.scrollTop:0;
-  sheet(`<h2>申請退換貨</h2><p class="sub" style="margin:0 0 8px">每個品項選品牌、類別，再填規格；直接打型號會自動帶入品牌和類別。送出後會產生退換貨單號。總倉同意後請把品項寄回；換貨會在總倉同意時自動幫你叫新的品項。</p>
+  sheet(`<h2>申請退換貨</h2><p class="sub" style="margin:0 0 8px">每個品項選品牌、類別，再填規格；直接打型號會自動帶入品牌和類別。送出後會產生退換貨單號。總倉同意後請把品項寄回；換貨的新品項總倉會照流程出貨，進度顯示在這張退換貨單上，不另外收費。</p>
   <div class="rxl">${f.man.map(man).join('')}</div><button class="btn g sm" style="width:100%;margin-top:8px" data-rx="madd">＋ 再加一個品項</button>
   <label for="rx_note">說明（選填）</label><textarea id="rx_note" data-rx="note" rows="2" placeholder="例如：瑕疵的狀況、有沒有拆封">${esc(f.note)}</textarea>
   ${f.err?`<div class="wn" style="margin-top:8px">${esc(f.err)}</div>`:''}
@@ -775,32 +777,45 @@ document.addEventListener('input',e=>{const t=e.target;if(!t.dataset||!t.dataset
     if(ch){m.b=RXB.includes(ch.b)?ch.b:'其他';m.c=RXC.includes(ch.c)?ch.c:'其他';const sb=document.querySelector(`#modal [data-rx=mb][data-i="${t.dataset.i}"]`),sc=document.querySelector(`#modal [data-rx=mc][data-i="${t.dataset.i}"]`);if(sb){sb.value=m.b;sb.classList.remove('bad')}if(sc){sc.value=m.c;sc.classList.remove('bad')}}}});
 function rxView(){const all=(S.rx||[]).slice().sort((a,b)=>(rxSt(a)=='申請中')-(rxSt(b)=='申請中')||0).sort((a,b)=>(rxSt(b)=='申請中')-(rxSt(a)=='申請中')||(b.createdAt||0)-(a.createdAt||0)),f=S.rxs||'open',in_=(x,v)=>v=='all'||(v=='open'?rxOpen(x):!rxOpen(x)),L=all.filter(x=>in_(x,f));
   const R=L.map(x=>({o:x,x:0,i:{q:(x.items||[]).reduce((t,y)=>t+(+y.q||0),0)}})),sel=ckSel('rx',R),cn=s=>sel.filter(r=>rxSt(r.o)==s).length;
-  let h=`<div class="card"><b>退換貨</b><p class="sub" style="margin:2px 0 8px">院所申請的退貨和換貨。勾選後在下方處理：同意後請院所寄回，收到後按「已收到退貨」，處理完按「完成」。換貨在同意時會自動產生一張換貨訂單（在出貨排程的待確認），跟一般訂單一樣叫貨出貨。</p>
+  let h=`<div class="card"><b>退換貨</b><p class="sub" style="margin:2px 0 8px">院所申請的退貨和換貨。勾選後在下方處理：同意後請院所寄回，收到後按「已收到退貨」，收到院所退回的貨時，選「總倉收著」或「退回廠商」。換貨在同意時會用同一個 R 單號進出貨排程的待確認，照一般流程確認、叫貨、出貨（院所不會多一張訂單、不收費，出貨明細類型記「管理處換貨出庫」）。處理完按「完成」。下方匯出「院所退回入庫」和「退回廠商」。</p>${rxIOBox()}
   <div class="seg">${[['open','處理中'],['done','已結案'],['all','全部']].map(([v,l])=>`<button class="chip ${f==v?'on':''}" data-a="rxs" data-v="${v}" aria-pressed="${f==v}">${l}（${all.filter(x=>in_(x,v)).length}）</button>`).join('')}</div></div>`;
   if(!L.length)return h+'<div class="card"><div class="empty">沒有退換貨申請。</div></div>';
   h+=`<div class="dsbar tdb">${ckBox('rx',R,`全選（${R.length} 張）`,'all')}</div>`+R.map(r=>`<div class="card"><div style="display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;align-items:start">${ckBox('rx',[r])}<div style="min-width:0">${rxCard(r.o,1)}</div></div></div>`).join('');
-  const nd=cn('申請中'),na=cn('已同意'),ng=cn('已收到退貨');
-  h+=sel.length?`<div class="mbar"><div class="mbt"><b>已選 ${sel.length} 張申請（${sel.reduce((t,r)=>t+r.i.q,0)} 件）</b>${S.rxNo2?'<small>請填不同意的原因，院所會看到</small>':''}</div>${S.rxNo2?`<div class="mba" style="flex-wrap:wrap"><input id="rx_hn" placeholder="不同意的原因" autocomplete="off" style="flex:1;min-width:160px;margin:0"><button class="btn o sm" data-a="rxgo" data-v="nocancel">取消</button><button class="btn sm" data-a="rxgo" data-v="nook">確定不同意</button></div>`:`<div class="mba">${nd?`<button class="btn sm" data-a="rxgo" data-v="ok">同意（${nd}）</button><button class="btn o sm" data-a="rxgo" data-v="no">不同意（${nd}）</button>`:''}${na?`<button class="btn sm" data-a="rxgo" data-v="got">已收到退貨（${na}）</button>`:''}${ng?`<button class="btn sm" data-a="rxgo" data-v="done">完成（${ng}）</button>`:''}<button class="btn o sm" data-a="ckclr" data-k="rx">清除</button></div>`}</div>`:'';
+  const nd=cn('申請中'),na=cn('已同意'),ng=sel.filter(r=>['已收到退貨','已寄出換貨'].includes(rxSt(r.o))).length;
+  h+=sel.length?`<div class="mbar"><div class="mbt"><b>已選 ${sel.length} 張申請（${sel.reduce((t,r)=>t+r.i.q,0)} 件）</b>${S.rxNo2?'<small>請填不同意的原因，院所會看到</small>':''}</div>${S.rxNo2?`<div class="mba" style="flex-wrap:wrap"><input id="rx_hn" placeholder="不同意的原因" autocomplete="off" style="flex:1;min-width:160px;margin:0"><button class="btn o sm" data-a="rxgo" data-v="nocancel">取消</button><button class="btn sm" data-a="rxgo" data-v="nook">確定不同意</button></div>`:`<div class="mba">${nd?`<button class="btn sm" data-a="rxgo" data-v="ok">同意（${nd}）</button><button class="btn o sm" data-a="rxgo" data-v="no">不同意（${nd}）</button>`:''}${na?`<button class="btn sm" data-a="rxgo" data-v="got" title="退回的品項由總倉收著，記院所退回入庫">已收到・總倉收著（${na}）</button><button class="btn o sm" data-a="rxgo" data-v="gotv" title="退回的品項直接退給廠商，不入庫">已收到・退回廠商（${na}）</button>`:''}${ng?`<button class="btn sm" data-a="rxgo" data-v="done">完成（${ng}）</button>`:''}<button class="btn o sm" data-a="ckclr" data-k="rx">清除</button></div>`}</div>`:'';
   return h}
-async function rxExOrder(x,ex){const d=new Date(),base=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${String(d.getMilliseconds()).padStart(3,'0')}`;let no=base,n2=0;/* v317：加毫秒，避免不同院所同一秒下單撞號（院所只看得到自己的單，查不到別家） */while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
+/* v334 om：換貨照總倉流程走（待確認、叫貨、出貨單、登錄庫存），但不給院所新訂單：單號用同一個 R 退換貨單號，o.rxno 標記，院所我的訂單不列，進度顯示在退換貨單 */
+async function rxExOrder(x,ex){const d=new Date(),base=String(x.no);let no=base,n2=0;/* v317：加毫秒，避免不同院所同一秒下單撞號（院所只看得到自己的單，查不到別家） */while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
   const src=S.orders.find(o=>o.id==ex[0].oid)||{};
   await Store.add({no,type:'reg',clinic:x.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:src.dest||x.clinic,eta:'',nd:true,surg:'',surgT:'',sn:false,doc:src.doc||'',pt:src.pt||'',rush:false,lab:'',staff:x.staff||'',by:who(),byE:x.byE||'',...(x.test?{test:true}:{}),note:`換貨（退換貨 #${x.no}）`,rxno:x.no,
     items:ex.map(y=>{const b=itemCols(y.n)[0],ch=codeHit(y.to);if(ch)return {n:ch.rk?ch.n:`${ch.b} ${ch.n.toLowerCase().includes(ch.c.toLowerCase())?'':ch.c+' '}${ch.n}（特殊規格）`,q:y.q,sp:ch.rk?0:1,rent:false,st:'待確認'};/* 換成填型號就直接用型錄品項 */return {n:`${b&&!/hiossen|nobel|straumann|\([HN]\)/i.test(y.to)?b+' ':''}${y.to}（特殊規格）（型錄外）`,q:y.q,sp:1,rent:false,st:'待確認'}})});return no}
 async function rxGo(v){const m=CK('rx');if(v=='no'){S.rxNo2=true;return render()}if(v=='nocancel'){S.rxNo2=false;return render()}
-  const sel=(S.rx||[]).filter(x=>m[x.id+':0']),st={ok:'申請中',nook:'申請中',got:'已同意',done:'已收到退貨'}[v],to={ok:'已同意',nook:'不同意',got:'已收到退貨',done:'已完成'}[v],L=sel.filter(x=>rxSt(x)==st);if(!L.length)return;
+  const sel=(S.rx||[]).filter(x=>m[x.id+':0']),to={ok:'已同意',nook:'不同意',got:'已收到退貨',gotv:'已收到退貨',done:'已完成'}[v],okF={ok:x=>rxSt(x)=='申請中',nook:x=>rxSt(x)=='申請中',got:x=>rxSt(x)=='已同意',gotv:x=>rxSt(x)=='已同意',done:x=>['已收到退貨','已寄出換貨'].includes(rxSt(x))}[v],L=sel.filter(okF);if(!L.length)return;
   const hn=v=='nook'?val('rx_hn').trim():'';if(v=='nook'&&!hn){const i=$('rx_hn');if(i){i.classList.add('bad');i.focus()}return}
   S.msg='';S.rxNo2=false;let n=0,nx=0;
   try{for(const x of L){const p={st:to,lg:[...(x.lg||[]),{s:to,at:Date.now(),by:who()}]};if(hn)p.hn=hn;
-    if(v=='ok'){const ex=(x.items||[]).filter(y=>y.k=='換貨');if(ex.length&&!x.xno){p.xno=await rxExOrder(x,ex);nx++}}
+    if(v=='got'||v=='gotv')p.rd=v=='gotv'?'廠商':'總倉';/* v334 om：收到退貨時選去向；退回廠商的不入庫 */
+    if(v=='ok'){const ex=(x.items||[]).filter(y=>y.k=='換貨');if(ex.length&&!x.xno&&!S.orders.some(o=>o.rxno==x.no)){p.xno=await rxExOrder(x,ex);nx++}}
     await Store.update(x.id,p);Object.assign(x,p);delete m[x.id+':0'];n++}}
   catch(e){S.msg='更新失敗，可能沒有寫入權限或連線中斷，請重新整理後再試。'}
-  S.toast=`已${({ok:'同意',nook:'不同意',got:'登記收到退貨',done:'完成'})[v]} ${n} 張退換貨申請${nx?`，並產生 ${nx} 張換貨訂單（在出貨排程的待確認）`:''}`;render()}
+  S.toast=`已${({ok:'同意',nook:'不同意',got:'登記收到退貨（總倉收著）',gotv:'登記收到退貨（退回廠商）',done:'完成'})[v]} ${n} 張退換貨申請${nx?`，換貨品項已進出貨排程的待確認（單號同退換貨單號）`:''}`;render()}
 /* v287 匯出改 Excel（om）：依類型分頁；「全部」分頁的欄位和以前的 CSV 一樣 */
 const XCAT=['植體','套件等','耗材','器械叫貨','器械租借','AO箱'];
 const xCat=(o,i)=>lnI(i)?'器械租借':o.type=='ao'?'AO箱':(c=>c=='耗材'?'耗材':c=='器械'?'器械叫貨':c=='植體'?'植體':'套件等')(itemCols(i.n)[1]);
+/* v332 om：庫存系統 進出庫 用。院所退回入庫＝按「已收到退貨」那天；管理處換貨出庫＝按「換貨已寄出」那天（不收費），名稱跟庫存系統 進出庫 類型一致（v333） */
+const rxAt=(x,st)=>{const e=(x.lg||[]).filter(l=>l.s==st).pop();return e?e.at:0},rxInR=(t,f,e)=>{if(!t)return false;const d=iso(new Date(t));return (!f||d>=f)&&(!e||d<=e)};
+const rxToN=t=>{const ch=codeHit(t);return ch?(ch.n.toLowerCase().startsWith(ch.b.toLowerCase())?ch.n:ch.b+' '+ch.n):t};
+function rxIO(f,e){const L=(S.rx||[]).slice().sort((a,b)=>String(a.no).localeCompare(String(b.no))),DT=t=>{const d=new Date(t);return `${iso(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`};
+  const V=[],IH=['入庫日期','類型','退換貨單號','院所','品牌','類別','品名','規格','品號','數量','退貨／換貨','原因','原訂單號','品項備註'],I=[];
+  const OH=['出庫日期','類型','退換貨單號','院所','品名','規格','品號','數量','換下的品項','品項備註','備註'],O=[];
+  L.forEach(x=>{const ga=rxAt(x,'已收到退貨'),xa=rxAt(x,'已寄出換貨');(x.items||[]).forEach(y=>{
+    if(rxInR(ga,f,e)){const q=p3(y.n);(x.rd=='廠商'?V:I).push([DT(ga),x.rd=='廠商'?'退回廠商（不入庫）':'院所退回入庫',`="${x.no}"`,x.clinic,y.b||'',y.c||'',q.n,q.s,q.p,+y.q||0,y.k,y.w,y.ono?`="${y.ono}"`:'',y.nt||''])}
+  })});
+  return {I:[IH,...I],V:[IH,...V],n:I.length+V.length}}
+const rxIOBox=()=>{const f=S.rxf1??TODAY,e=S.rxe1??TODAY;return `<div class="rxio" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 0"><small>入出庫日期</small><input type="date" data-s="rxf1" value="${esc(f)}" style="width:auto"><small>到</small><input type="date" data-s="rxe1" value="${esc(e)}" style="width:auto"><button class="btn o sm" data-a="rxio">匯出退貨入庫 Excel</button></div>${S.rxioMsg?`<div class="sub" style="margin:6px 0 0;color:var(--ok)">${esc(S.rxioMsg)}</div>`:''}`};
 const RXH=['退換貨單號','狀態','院所','申請日','申請人','退貨／換貨','原因','品牌','類別','品名','規格','品號','數量','換成','品項備註','原訂單號','原出貨單號','換貨訂單號','院所說明','總倉回覆'];
 const rxRows=f=>{const R=[];(S.rx||[]).filter(f||(()=>true)).sort((a,b)=>String(a.no).localeCompare(String(b.no))).forEach(x=>(x.items||[]).forEach(y=>R.push([`="${x.no}"`,rxSt(x),x.clinic,x.od||'',x.staff||x.by||'',y.k,y.w,y.b||'',y.c||'',...(p=>[p.n,p.s,p.p])(p3(y.n)),+y.q||0,y.to||'',y.nt||'',y.ono?`="${y.ono}"`:'',y.sh||'',x.xno?`="${x.xno}"`:'',x.note||'',x.hn||''])));return R};
-const xBook=(x,rf)=>xlsx([{name:'全部',rows:[x.H,...x.R]},...XCAT.map(c=>({name:c,rows:[x.H,...x.R.filter((r,k)=>x.C[k]==c)]})),{name:'退換貨',rows:[RXH,...rxRows(rf)]}]);
+const xBook=(x,rf)=>xlsx([{name:'全部',rows:[x.H,...x.R]},...XCAT.map(c=>({name:c,rows:[x.H,...x.R.filter((r,k)=>x.C[k]==c)]}))]);/* v332 om：退換貨的入出庫改在退換貨頁匯出 */
 const XMIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 function xlsx(sheets){const enc=new TextEncoder(),X=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,''),HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='http://schemas.openxmlformats.org/',CT=NS+'officeDocument/2006/relationships/';
   const col=n=>{let s='';n++;while(n){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s};
@@ -1120,7 +1135,7 @@ function p3(n0){const ao=AOP(n0);if(ao)return {n:ao.b+' AO 箱',s:[ao.t,ao.off.l
 const tag=(i,o)=>[i.sp?'特殊規格':'',/（型錄外）/.test(i.n)?'型錄外':'',o&&o.type=='ao'?'AO箱':''].filter(Boolean).join('、');
 function histCsv(os,f){os=os||histFiltered();f=f||shipIn;const D=t=>t?iso(new Date(t)):'',lgAt=(i,st)=>{const e=(i.lg||[]).filter(x=>x.s==st).pop();return e?D(e.at):''};
   const H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫生','品名','規格','品號','特殊規格','數量','出貨單號','出貨日','AO回收','備註','登記人員'];
-  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,lnI(i)?'器械租借':o.type=='ao'?'AO箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...(x=>[x.n,x.s,x.p])(p3(i.n)),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||''])));
+  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,o.rxno?'管理處換貨出庫':lnI(i)?'器械租借':o.type=='ao'?'AO箱':'常規',o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...(x=>[x.n,x.s,x.p])(p3(i.n)),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||''])));
   const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';/* 每格都加引號：試算表若把空白當分隔符號也不會拆欄 */
   return {n:R.length,H,R,C,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
 async function dlFile(filename,data,type){let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
@@ -1693,7 +1708,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='vord'){S.vOpen=S.vOpen||{};if(S.vOpen[v])delete S.vOpen[v];else S.vOpen[v]=1}
   else if(a=='edsave'){edSave(v);return}
   else if(a=='rxnew'){S.rxf={oid:'',sel:{},man:[{b:'',c:'',n:'',q:1,k:'退貨',w:'沒有使用',to:''}],note:'',err:''};rxForm();return}
-  else if(a=='rxgo'){rxGo(v);return}
+  else if(a=='rxgo'){rxGo(v);return}else if(a=='rxio'){const f=S.rxf1??TODAY,e2=S.rxe1??TODAY,x=rxIO(f,e2),all=rxRows(y=>(y.od&&(!f||y.od>=f)&&(!e2||y.od<=e2))||rxInR(rxAt(y,'已收到退貨'),f,e2)||rxInR(rxAt(y,'已寄出換貨'),f,e2));const nm=`退換貨入出庫-${fstamp()}.xlsx`;dlFile(nm,xlsx([{name:'院所退回入庫',rows:x.I},{name:'退回廠商',rows:x.V},{name:'退換貨明細',rows:[RXH,...all]}]),XMIME).then(()=>{S.rxioMsg=`已匯出 ${nm}：院所退回入庫 ${x.I.length-1} 筆、退回廠商 ${x.V.length-1} 筆（換貨出庫在登錄庫存的出貨明細，類型「管理處換貨出庫」）`;render()});return}
   else if(a=='rxs'){S.rxs=v;S.ck.rx={};S.rxNo2=false;render();return}
   else if(a=='rxtab'){S.mailOn=false;$('modal').innerHTML='';if(isHQ()){S.tab='rx';if(MODE!='ship')go('ship');else render()}else{S.view='mine';S.mt='rx';if(MODE!='order')go('order');else render()}return}
   else if(a=='ckgo'){const k=t.dataset.k,m=CK(k),pr=Object.keys(m).map(key=>{const [id,x]=key.split(':'),o=S.orders.find(y=>y.id==id);return o&&o.items[+x]?{o,x:+x,i:o.items[+x]}:null}).filter(Boolean),done=rs=>rs.forEach(r=>delete m[kOf(r)]);
@@ -1887,7 +1902,7 @@ document.addEventListener('focusin',e=>{const bx=e.target.dataset&&e.target.data
 document.addEventListener('mouseup',e=>{if(S.qsel&&e.target.dataset&&e.target.dataset.qk){e.preventDefault();S.qsel=false}else S.qsel=false});
 document.addEventListener('focusout',e=>{const d=e.target.dataset;if(d&&d.qk){const t=e.target,v=t.value.replace(/\D/g,'');setQ(d.qk,v===''?0:parseInt(v,10),true);S.qd=true;setTimeout(()=>{if(S.qd&&!(document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.qk))render()},250)}});
 document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.dataset&&e.target.dataset.qk){e.preventDefault();e.target.blur()}});
-document.addEventListener('change',e=>{if(e.target.dataset.vfs){const F=S.vf||(S.vf={c:'',b:'',s:'u'}),k=e.target.dataset.vfs;F[k]=e.target.value;if(k!='s'){const m=CK('ven');Object.keys(m).forEach(x=>delete m[x])}render();return}if(e.target.dataset.sr){if(e.target.dataset.sr=='s')return;const r=S.sr[+e.target.dataset.i],k=e.target.dataset.sr;if(r){r[k]=e.target.value;if(k=='q')r.q=Math.max(1,+e.target.value||1),e.target.value=r.q;if(k=='b'||k=='c')r.rk=null,r.cd=0;if(k=='b'){r.y=sysGuess(r.b,r.s,r.c);r.ya=!!r.y;r.ln='';specForm()}if(k=='c'){r.ln='';if(!r.y||r.ya){r.y=sysGuess(r.b,r.s,r.c);r.ya=!!r.y}specForm()}}return}if(onField(e))return;const t=e.target.dataset.s;if(!t)return;
+document.addEventListener('change',e=>{if(e.target.dataset.s=='rxf1'||e.target.dataset.s=='rxe1'){S[e.target.dataset.s]=e.target.value;S.rxioMsg='';render();return}if(e.target.dataset.vfs){const F=S.vf||(S.vf={c:'',b:'',s:'u'}),k=e.target.dataset.vfs;F[k]=e.target.value;if(k!='s'){const m=CK('ven');Object.keys(m).forEach(x=>delete m[x])}render();return}if(e.target.dataset.sr){if(e.target.dataset.sr=='s')return;const r=S.sr[+e.target.dataset.i],k=e.target.dataset.sr;if(r){r[k]=e.target.value;if(k=='q')r.q=Math.max(1,+e.target.value||1),e.target.value=r.q;if(k=='b'||k=='c')r.rk=null,r.cd=0;if(k=='b'){r.y=sysGuess(r.b,r.s,r.c);r.ya=!!r.y;r.ln='';specForm()}if(k=='c'){r.ln='';if(!r.y||r.ya){r.y=sysGuess(r.b,r.s,r.c);r.ya=!!r.y}specForm()}}return}if(onField(e))return;const t=e.target.dataset.s;if(!t)return;
   if(t=='clinic'){S.clinic=e.target.value;S.csel=false;['reg','ao'].forEach(k=>{S.hd[k].doc='';S.hd[k].staff=A.me?A.me.name:'';S.hd[k].dest='';S.hd[k].destOther='';S.hd[k].dk='c'})}
   if(t=='ft'){S.f.t=e.target.value;S.hp=0}
   if(t=='rf')S.rf=e.target.value;
