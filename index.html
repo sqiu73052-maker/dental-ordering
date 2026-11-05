@@ -241,7 +241,7 @@ tr.sp>td{height:12px;padding:0;box-shadow:none}
 .side .card,.main .card{margin-bottom:0}
 @media (min-width:900px){.ship{grid-template-columns:minmax(0,1fr) 320px;align-items:start}.side{grid-column:2;grid-row:1;position:sticky;top:12px}.main{grid-column:1;grid-row:1}}
 .rxr{border-top:1px solid var(--line);padding:10px 0}.rxl>.rxr:first-child{border-top:0;padding-top:2px}.rxd{margin:6px 0 0 30px}.rxr>div:first-child+.rxmh+.rxd,.rxr .rxmh+.rxd{margin-left:0}.rxmh{display:block;min-height:0}
-.cfm{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px}.cfb{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,.25)}.tnl{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:4px;font-size:12px;flex-wrap:wrap}.tni{width:130px;font-size:12px;padding:4px 6px}
+.cfm{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:16px}.cfb{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,.25)}.tncp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 8px;margin:2px 4px 2px 0;font:inherit;color:inherit;cursor:pointer}.tncp b{user-select:all;letter-spacing:.3px}.tncp span{font-size:12px;color:var(--acc);font-weight:600}.tncp.ok{border-color:var(--ok);}.tncp.ok span{color:var(--ok)}.tnl{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:4px;font-size:12px;flex-wrap:wrap}.tni{width:130px;font-size:12px;padding:4px 6px}
 .shh{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0 2px;padding:6px 8px;background:var(--bg2,#f4f7f7);border-radius:8px;font-size:12px;color:var(--muted)}.shh .tnl{margin-top:0}
 </style>
 <style>body.slipopen>#wrap,body.slipopen>#bar,body.slipopen>.appbar{display:none!important}#slipov{background:#e9ecec;min-height:100vh;color:#111}.slipbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#17233A;color:#fff;padding:10px 16px calc(10px);padding-top:calc(10px + env(safe-area-inset-top,0px))}.slipbar .btn{margin:0;flex:none}.slipbar .btn.g{background:transparent;color:#fff;border:1px solid #ffffff66}.slipbar .sbh{flex:1;font-size:13px;opacity:.8;min-width:0}#slipinfo{max-width:752px;margin:12px auto 0;padding:0 16px}#slipinfo:empty{display:none}#slipinfo .sub{color:#555}#slipfr{display:block;width:100%;min-height:80vh;border:0;background:transparent}@media print{body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}}.stls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}.stl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;min-width:0}.stl b{font-size:24px;line-height:1.15}.stl small{color:var(--mute);font-size:13.5px;font-weight:600}.stl em{font-style:normal;font-size:12px;color:var(--rose);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stl.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset;background:var(--accbg)}.stl.r b{color:var(--rose)}.stl.w b{color:var(--warn)}.stl.k b{color:var(--ok)}
@@ -500,7 +500,7 @@ function minePage(){
     <div class="prog" aria-hidden="true"><i style="width:${n?Math.round(d/n*100):0}%"></i></div><div class="oline"><span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.demo?'<span class="tag t4">範例</span>':''}<span class="osum">叫貨 ${md(o.od)} · 預估到貨 ${eta} · ${one?`${n} 項・${o.items.reduce((t,i)=>t+i.q,0)} 件`:gk.map(k=>`${k} ${gm[k].L.length}`).join('、')}</span></div></summary>
     ${o.cx?`<div class="sub" style="margin:0 0 6px">取消原因：${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</div>`:chgTxt(o)?`<div class="hint" style="margin:0 0 6px">${chgTxt(o)}</div>`:''}
     <div class="meta"><span>叫貨</span><b>${md(o.od)} ${esc(o.tm)}</b><span>預估到貨</span><b>${eta}</b>${ao?`<span>手術日</span><b>${md(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:(o.surg||o.sn)?`<span>手術日</span><b>${o.surg?md(o.surg)+(o.surgT?' '+esc(o.surgT):''):'診所備貨'}</b>`:''}${o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:''}<span>醫生</span><b>${esc(o.doc||"—")}</b>${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}${o.rush?'<span>配送</span><b style="color:var(--rose)">特急件（拉拉）・運費院所自付</b>':''}<span>登記</span><b>${esc(o.staff)}</b>${dst(o)!=o.clinic?`<span>送貨地點</span><b>${esc(dst(o))}</b>`:''}</div>
-    ${gk.map(k=>{const g=gm[k],gk2='mg:'+o.id+':'+k,gOpen=S.b4o[gk2]!=null?S.b4o[gk2]:!(k=='已出貨'&&gk.length>1);const rows=ITG(g.L,i=>`${NMg(i)}${shT(i)}${dvBtn(o,i)}${!ao&&lnI(i)&&i.st=='已出貨'?` <small>已歸還 ${i.rc||0}/${i.q}</small>`:''}${ao&&i.st=='已出貨'?` <small>已收回 ${i.rc||0}/${i.q} 箱${i.rent?'・器械組 '+(i.rk||0)+'/'+i.q:''}</small>`:''}`);return one?`<div class="sgrp">${rows}</div>`:`<details class="sgrp fold" data-k="${esc(gk2)}" ${gOpen?'open':''}><summary><span class="tag ${g.c}">${k}</span><small>${g.L.length} 項・${g.L.reduce((t,i)=>t+i.q,0)} 件</small></summary>${rows}</details>`}).join('')}${rOpen(o)?`<div class="hint" style="margin:6px 0 0">${rTag(o)} ${ao?'AO 箱':'租借器械'}使用完畢請盡快寄回管理處。</div>`:''}${odone(o)?'':editBox(o)}</details>`});
+    ${gk.map(k=>{const g=gm[k],gk2='mg:'+o.id+':'+k,gOpen=S.b4o[gk2]!=null?S.b4o[gk2]:!(k=='已出貨'&&gk.length>1);const rows=ITG(g.L,i=>`${NMg(i)}${shT(i)}${dvBtn(o,i)}${!ao&&lnI(i)&&i.st=='已出貨'?` <small>已歸還 ${i.rc||0}/${i.q}</small>`:''}${ao&&i.st=='已出貨'?` <small>已收回 ${i.rc||0}/${i.q} 箱${i.rent?'・器械組 '+(i.rk||0)+'/'+i.q:''}</small>`:''}`);return one?`<div class="sgrp">${rows}</div>`:`<details class="sgrp fold" data-k="${esc(gk2)}" ${gOpen?'open':''}><summary><span class="tag ${g.c}">${k}</span><small>${g.L.length} 項・${g.L.reduce((t,i)=>t+i.q,0)} 件</small></summary>${rows}</details>`}).join('')}${tnLine(o)}${rOpen(o)?`<div class="hint" style="margin:6px 0 0">${rTag(o)} ${ao?'AO 箱':'租借器械'}使用完畢請盡快寄回管理處。</div>`:''}${odone(o)?'':editBox(o)}</details>`});
   return h}
 const cartPanel=()=>{const a=items(),c=cnt(),unit=S.view=='ao'?(lnCart().length?'項':'箱'):'件';
   return `<aside class="cartp ${S.co?'open':''}" aria-label="已選品項"><button class="cph" data-a="co" aria-expanded="${S.co}"><b>已選品項</b><span style="display:flex;gap:8px;align-items:center"><span class="tag t4">${c} ${unit}</span><span>${S.co?'收合 ▴':'展開 ▾'}</span></span></button>`
@@ -514,6 +514,7 @@ function regItems(){const a=[];for(const k in S.cart){if(S.cart[k]>0){const [b,c
   S.spec.forEach((s,i)=>a.push({k:'s'+i,n:s.n,q:s.q,sp:1}));return a}
 /* 器械租借可以跟 AO 箱或常規一起送（v243，om）：租借品項放在 S.cart，送哪一種訂單就跟著那張走 */
 const LNK=n=>'器械租借|全部|'+n+'|',lnCart=()=>Object.keys(S.cart).filter(k=>k.startsWith('器械租借|')&&S.cart[k]>0).map(k=>({k,n:k.split('|')[2],q:S.cart[k],sp:0,ln:1}));
+const BLX='Straumann BLX 一階盒',bLn=()=>(S.cart[LNK(BLX)]||0)>0;/* v331 om：Straumann AO 箱可選配的器械只有 BLX，跟 Zygoma 一樣在箱子裡選是否租借；選「是」就把 BLX 一階盒（總倉借出）加進這張單 */
 const ZYL='Nobel Zygoma 器械',zAoRent=()=>S.ao.some(x=>x.b=='Nobel Zygoma'&&x.rent),zLn=()=>(S.cart[LNK(ZYL)]||0)>0;
 /* Zygoma 器械只有一套：同一張單最多 1 組；AO 箱已勾租借 Zygoma 器械，器械租借區就不能再借 */
 function lnNorm(){const k=LNK(ZYL),q=S.cart[k]||0;if(!q)return;if(zAoRent()){delete S.cart[k];S.toast='AO 箱已經租借 Zygoma 器械，器械租借區不能再借一次';return}if(q>1){S.cart[k]=1;S.toast='Zygoma 器械只有一組，一張訂單最多借 1 組'}}
@@ -592,17 +593,17 @@ const AOB=['Hiossen','Nobel','Straumann','Nobel Zygoma'];
 const aoV=i=>{const p=AOP(i&&i.n);return !!p&&p.b=='Straumann'};/* v313 om：Straumann AO 箱不由總倉出貨，向廠商叫貨、廠商直送院所（不進今天出貨、不開出貨單、不進回收） *//* v310 om：加 Straumann（內容表 AOSPEC 尚未提供時，出貨單印空白表格手寫） */
 /* Zygoma 預設單顎；全口只有在這張訂單沒有其他品牌 AO 箱時才能選，選了 Zygoma 全口就不能再加其他品牌 */
 const zOther=()=>S.ao.some(x=>x.b!='Nobel Zygoma'),zFull=()=>S.ao.some(x=>x.b=='Nobel Zygoma'&&/ 全口 /.test(x.n));
-function aoView(){const f=S.af,z=f.b=='Nobel Zygoma',none=false;if(z&&zLn())f.rent='否';const need=z&&!f.rent,dup=S.ao.some(x=>x.b==f.b),zf=!z&&zFull(),fullOff=z&&zOther();
+function aoView(){const f=S.af,z=f.b=='Nobel Zygoma',sx=f.b=='Straumann',none=false;if(z&&zLn())f.rent='否';const bl=sx&&bLn()&&!S.ao.some(x=>x.blx),need=(z||sx&&!bl)&&!f.rent,dup=S.ao.some(x=>x.b==f.b),zf=!z&&zFull(),fullOff=z&&zOther();
   const seg=(arr,cur,act)=>`<div class="seg">${arr.map(b=>`<button class="chip ${cur==b?'on':''}" data-a="${act}" data-v="${b}" aria-pressed="${cur==b}">${b}</button>`).join('')}</div>`;
   let h=`<div class="card"><label style="margin-top:0">品牌</label>${seg(AOB,f.b,'afb')}${f.b=='Straumann'?'<div class="hint">Straumann AO 箱由廠商直接送到院所，收到後請在「我的訂單」按「確認收到」。</div>':''}${dup?`<div class="hint">這張訂單已加入 ${esc(f.b)} AO 箱（每個品牌限 1 箱）。如要更換內容，請先在下方移除。</div>`:''}
   <label>型態</label><div class="seg">${['單顎','全口'].map(t=>{const off=t=='全口'&&fullOff;return `<button class="chip ${f.t==t?'on':''}" data-a="aft" data-v="${t}" aria-pressed="${f.t==t}" ${off?'disabled style="opacity:.45;cursor:default"':''}>${t}</button>`}).join('')}</div>${fullOff?'<div class="sub" style="margin:4px 0 0">已有其他品牌 AO 箱，Zygoma 只能選單顎</div>':''}${zf?'<div class="hint">這張訂單已加入 Zygoma 全口 AO 箱，不能再加入其他品牌。</div>':''}
   <label>內容（只有植體可以取消，其餘固定包含）</label><div class="seg">${AOC.map(c=>c=='植體'?`<button class="chip ${f.c[c]?'on':''}" data-a="afc" data-v="${c}" aria-pressed="${!!f.c[c]}">${f.c[c]?'✓ ':''}${c}</button>`:`<button class="chip on" disabled aria-pressed="true" style="opacity:.7;cursor:default">✓ ${c}</button>`).join('')}</div>
   ${none?'<div class="hint">至少要選一項內容</div>':''}
   ${z?`<label>是否租借器械</label>${zLn()?'<div class="sub" style="margin:0">已在器械租借加入 Zygoma 器械，這裡不用再租借</div>':seg(['是','否'],f.rent,'afr')}${need&&!zLn()?'<div class="hint">請選擇是否租借器械</div>':''}`:''}
+  ${sx?`<label>是否租借 BLX 器械</label>${bl?'<div class="sub" style="margin:0">已在器械租借加入 Straumann BLX 一階盒，這裡不用再租借</div>':seg(['是','否'],f.rent,'afr')+'<div class="sub" style="margin:4px 0 0">BLX 器械（一階盒）由總倉借出，用完寄回總倉</div>'}${need?'<div class="hint">請選擇是否租借 BLX 器械</div>':''}`:''}
   <button class="btn" style="width:100%;margin-top:14px" data-a="aoadd" ${none||need||dup||zf?'disabled':''}>加入訂單</button></div>`;
-  const LL=CAT['器械租借']['全部'].l;
-  h+=`<div class="card"><b>一起租借器械</b><div class="sub" style="margin:2px 0 6px">器械為租借，使用完要寄回總倉</div>${LL.map(n=>{const k=LNK(n),q=S.cart[k]||0,zb=n==ZYL&&zAoRent();return `<div class="row"><span>${esc(n)}${zb?'<br><small style="color:var(--mute)">AO 箱已租借 Zygoma 器械</small>':''}</span>${zb?'':stp(k,q)}</div>`}).join('')}</div>`;
-  if(S.ao.length)h+=`<div class="card"><b>已加入的 AO 箱</b>${S.ao.map((x,i)=>`<div class="row"><span>${esc(x.n)}</span><button class="link" style="padding:0" data-a="aorm" data-v="${i}">移除</button></div>`).join('')}</div>`;
+  /* v331 om：AO 箱頁不再列「一起租借器械」，Zygoma、BLX 器械都在箱子裡選；其他器械到「器械租借」 */
+  if(S.ao.length)h+=`<div class="card"><b>已加入的 AO 箱</b>${S.ao.map((x,i)=>`<div class="row"><span>${esc(x.n)}${x.blx?'<br><small style="color:var(--mute)">＋ 租借 Straumann BLX 一階盒</small>':''}</span><button class="link" style="padding:0" data-a="aorm" data-v="${i}">移除</button></div>`).join('')}</div>`;
   return h}
 function head(t,s){return `${S.toast?`<div class="toast">${esc(S.toast)}${S.view!='mine'?' <button class="link" style="padding:0 0 0 8px" data-a="view" data-v="mine">查看我的訂單</button>':''}</div>`:''}${S.mode=='local'?'<div class="wn" style="margin:0 0 10px">目前沒有連線到共用資料庫，送出的訂單只會存在這個瀏覽器，總倉出貨頁看不到。</div>':''}<h1>${t}</h1><p class="sub">${s}</p><!--SPLIT-->`}
 const mtBar=()=>`<div class="cbar">${mclSel()}<label style="margin-top:0">篩選</label><div class="seg" style="flex-wrap:wrap">${[['reg','一般叫貨'],['ao','AO 箱＆租借'],['rx','退換貨']].map(([v,l])=>`<button class="chip ${mtV()==v?'on':''}" data-a="mt" data-v="${v}" aria-pressed="${mtV()==v}">${l}</button>`).join('')}</div></div>`;
@@ -637,6 +638,10 @@ function clinic(){
   h+=`</div>`;
   return h}
 const READY=['總倉出貨','廠商到貨'];
+/* v329 om：貨運單號點一下或按「複製」就複製；院所我的訂單也顯示（v318 只有總倉訂單查詢有） */
+const tnLine=o=>{const tns=[...new Set(o.items.filter(i=>!i.cx).map(i=>i.tn).filter(Boolean))];return tns.length?`<div class="sub tnw" style="margin:6px 0 0">🚚 貨運單號：${tns.map(x=>`<button class="tncp" data-a="tncp" data-v="${esc(x)}" title="點一下複製"><b>${esc(x)}</b><span>複製</span></button>`).join(' ')}</div>`:''};
+async function tnCopy(t,v){let ok=false;try{await navigator.clipboard.writeText(v);ok=true}catch(e){try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e2){}}
+  const sp=t.querySelector('span');if(!sp)return;sp.textContent=ok?'✓ 已複製':'請長按單號複製';t.classList.toggle('ok',ok);clearTimeout(t._tm);t._tm=setTimeout(()=>{sp.textContent='複製';t.classList.remove('ok')},1800)}
 function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o.items.length&&!o.cx;
   const ao=o.type=='ao',eta=o.nd?'不指定':`${mdn(o.eta)}${isWk(o.eta)?' <span class="tag t0">週末</span>':''}`;
   const meta=(ao?`<span>手術日</span><b>${mdn(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:(o.surg||o.sn)?`<span>手術日</span><b>${o.surg?mdn(o.surg)+(o.surgT?' '+esc(o.surgT):''):'診所備貨'}</b>`:'')+`<span>預估到貨</span><b>${eta}</b><span>醫生</span><b>${esc(o.doc||"—")}</b>`+(o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:'')+(o.rush?'<span>配送</span><b style="color:var(--rose)">特急件（拉拉）・運費院所自付</b>':'')+`${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}<span>登記</span><b>${esc(o.staff)}</b><span>叫貨</span><b>${mdn(o.od)} ${esc(o.tm)}</b>`;
@@ -646,7 +651,7 @@ function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o
   if(o.cx)h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}</span><span class="tag t4">${esc(i.st)}</span>`,'s1')}</div>`;
   else h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}${i.by&&i.st!='待確認'?` <small class="oby" title="${esc((i.lg||[]).map(l=>ft(l.at)+' '+l.s+'：'+l.by).join('\n'))}">· ${esc(i.by)} ${ft(i.at)}</small>`:''}${ao||shOne(o)?'':shT(i)}</span>${ao?'':`<span class="tag ${stCls(i.st)}">${esc(i.st)}</span>`}`,'s1')}</div>`;
   if(!ao&&shOne(o))h+=`<div class="sub" style="margin:6px 0 0">出貨單${shT(o.items[0])}</div>`;
-  {const tns=[...new Set(o.items.filter(i=>!i.cx).map(i=>i.tn).filter(Boolean))];if(tns.length)h+=`<div class="sub" style="margin:6px 0 0">🚚 貨運單號：${tns.map(x=>`<b style="user-select:all">${esc(x)}</b>`).join('、')}</div>`}/* v318 om：院所追蹤貨運單號（總倉在登錄庫存輸入） */
+  h+=tnLine(o);/* v318 om：院所追蹤貨運單號（總倉在登錄庫存輸入） */
   if(ao){const shn=[...new Set(o.items.filter(i=>i.sh).map(i=>i.sh))];if(op)h+=`<div class="sub" style="margin:8px 0 0">待出貨，請到「出貨排程」操作。</div>`;if(shn.length&&isHQ())h+=`<div class="sub" style="margin:8px 0 0">出貨單 ${shn.map(n=>isHQ()?`<button class="link" style="padding:0;font-size:13px" data-a="slipview" data-v="${esc(n)}">${esc(n)}</button>`:esc(n)).join('、')}</div>`}
   return h+'</div>'}
 const allIt=()=>S.orders.filter(o=>!o.cx).flatMap(o=>o.items.map((i,x)=>({o,i,x})));
@@ -739,7 +744,7 @@ function rxForm(){const f=S.rxf,P=[];/* v290 om：不從訂單選，院所自己
     <div style="display:flex;gap:8px;margin-top:6px;align-items:center"><select data-rx="mw" data-i="${j}" aria-label="原因" style="flex:1">${RXW.map(w=>`<option ${m.w==w?'selected':''}>${w}</option>`).join('')}</select>
     <div class="st"><button data-rx="mq" data-i="${j}" data-d="-1" aria-label="減少" ${m.q>1?'':'disabled'}>−</button><b style="min-width:26px;text-align:center">${m.q}</b><button class="p" data-rx="mq" data-i="${j}" data-d="1" aria-label="增加">+</button></div></div>
     ${m.k=='換貨'?`<input data-rx="mto" data-i="${j}" value="${esc(m.to)}" placeholder="要換成什麼？例如：同款 4.5*10" autocomplete="off" style="margin-top:6px" class="${f.err&&m.n.trim()&&!m.to.trim()?'bad':''}" aria-label="要換成的品項">`:''}
-    <input data-rx="mnt" data-i="${j}" value="${esc(m.nt||'')}" placeholder="備註（選填），例如：已拆封、瑕疵狀況" autocomplete="off" maxlength="80" style="margin-top:6px" aria-label="品項備註"></div></div>`};
+    <input data-rx="mnt" data-i="${j}" value="${esc(m.nt||'')}" placeholder="${m.w=='其他'?'原因選「其他」，請寫理由（必填）':'備註（選填），例如：已拆封、瑕疵狀況'}" autocomplete="off" maxlength="80" style="margin-top:6px" class="${f.err&&m.n.trim()&&m.w=='其他'&&!String(m.nt||'').trim()?'bad':''}" aria-label="${m.w=='其他'?'理由（必填）':'品項備註'}"></div></div>`};
   const sc=document.querySelector('#modal .sheet'),top=sc?sc.scrollTop:0;
   sheet(`<h2>申請退換貨</h2><p class="sub" style="margin:0 0 8px">每個品項選品牌、類別，再填規格；直接打型號會自動帶入品牌和類別。送出後會產生退換貨單號。總倉同意後請把品項寄回；換貨會在總倉同意時自動幫你叫新的品項。</p>
   <div class="rxl">${f.man.map(man).join('')}</div><button class="btn g sm" style="width:100%;margin-top:8px" data-rx="madd">＋ 再加一個品項</button>
@@ -751,6 +756,7 @@ const rxNo=()=>{const d=new Date();return 'R'+d.getFullYear()+pad(d.getMonth()+1
 async function rxSend(btn){const f=S.rxf,ks=Object.keys(f.sel),mm=f.man.filter(m=>m.n.trim());if(!ks.length&&!mm.length){f.err='請填寫至少一個品項。';return rxForm()}
   if(mm.some(m=>!codeHit(m.n)&&(!m.b||!m.c))){f.err='請選品牌和類別（打型號會自動帶入）。';return rxForm()}
   if(ks.some(k=>f.sel[k].k=='換貨'&&!f.sel[k].to.trim())||mm.some(m=>m.k=='換貨'&&!m.to.trim())){f.err='換貨請填要換成什麼。';return rxForm()}
+  if(mm.some(m=>m.w=='其他'&&!String(m.nt||'').trim())){f.err='原因選「其他」的品項，請在備註欄寫理由。';return rxForm()}
   const cl0=myCl().length==1?myCl()[0]:S.clinic;if(mm.length&&!cl0){f.err='手動填寫的品項要用院所帳號申請。';return rxForm()}
   const its=ks.map(k=>{const [id,x]=k.split(':'),o=S.orders.find(y=>y.id==id),i=o&&o.items[+x];return i?{o,x:+x,i,s:f.sel[k]}:null}).filter(Boolean).concat(mm.map(m=>{const ch=codeHit(m.n),sp=m.n.trim(),n=ch?(ch.n.toLowerCase().startsWith(ch.b.toLowerCase())?ch.n:ch.b+' '+ch.n):`${m.b&&m.b!='其他'&&!sp.toLowerCase().includes(m.b.toLowerCase())?m.b+' ':''}${m.c&&m.c!='其他'&&!sp.toLowerCase().includes(m.c.toLowerCase())?m.c+' ':''}${sp}`;return {o:{id:'',no:'',clinic:cl0},x:-1,i:{n,b:ch?ch.b:m.b,c:ch?ch.c:m.c},s:m,man:1}})),byC=grpBy(its,r=>r.o.clinic),d=new Date(),base=rxNo(),nos=[];
   btn.disabled=true;btn.textContent='送出中…';
@@ -764,7 +770,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(a=='mdel'&&m){f.man.splice(j,1);rxForm();return}if(a=='mk'&&m){m.k=t.dataset.v;rxForm();return}if(a=='mq'&&m){m.q=Math.max(1,m.q+ +t.dataset.d);rxForm();return}
   if(a=='k'&&f.sel[k]){f.sel[k].k=t.dataset.v;rxForm()}else if(a=='q'&&f.sel[k]){f.sel[k].q=Math.max(1,f.sel[k].q+ +t.dataset.d);rxForm()}else if(a=='send')rxSend(t)});
 document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||!t.dataset.rx||!S.rxf)return;const a=t.dataset.rx,k=t.dataset.k,f=S.rxf;
-  if(a=='ck'){if(t.checked)f.sel[k]={q:1,k:'退貨',w:'沒有使用',to:''};else delete f.sel[k];f.err='';rxForm()}else if(a=='w'&&f.sel[k])f.sel[k].w=t.value;else if(a=='mw'&&f.man[+t.dataset.i])f.man[+t.dataset.i].w=t.value;else if((a=='mb'||a=='mc')&&f.man[+t.dataset.i]){f.man[+t.dataset.i][a=='mb'?'b':'c']=t.value;t.classList.remove('bad')}});
+  if(a=='ck'){if(t.checked)f.sel[k]={q:1,k:'退貨',w:'沒有使用',to:''};else delete f.sel[k];f.err='';rxForm()}else if(a=='w'&&f.sel[k])f.sel[k].w=t.value;else if(a=='mw'&&f.man[+t.dataset.i]){f.man[+t.dataset.i].w=t.value;rxForm()}/* v330 om：選其他時理由必填，重畫換提示 */else if((a=='mb'||a=='mc')&&f.man[+t.dataset.i]){f.man[+t.dataset.i][a=='mb'?'b':'c']=t.value;t.classList.remove('bad')}});
 document.addEventListener('input',e=>{const t=e.target;if(!t.dataset||!t.dataset.rx||!S.rxf)return;if(t.dataset.rx=='to'&&S.rxf.sel[t.dataset.k])S.rxf.sel[t.dataset.k].to=t.value;else if(t.dataset.rx=='note')S.rxf.note=t.value;else if(t.dataset.rx=='mto'&&S.rxf.man[+t.dataset.i])S.rxf.man[+t.dataset.i].to=t.value;else if(t.dataset.rx=='mnt'&&S.rxf.man[+t.dataset.i])S.rxf.man[+t.dataset.i].nt=t.value;else if(t.dataset.rx=='mn'&&S.rxf.man[+t.dataset.i]){S.rxf.man[+t.dataset.i].n=t.value;const m=S.rxf.man[+t.dataset.i],ch=codeHit(t.value),h=document.querySelector(`#modal .rxmh[data-i="${t.dataset.i}"]`);if(h)h.textContent=ch?'✓ 型錄品項：'+ch.n+'（已帶入品牌和類別）':'';
     if(ch){m.b=RXB.includes(ch.b)?ch.b:'其他';m.c=RXC.includes(ch.c)?ch.c:'其他';const sb=document.querySelector(`#modal [data-rx=mb][data-i="${t.dataset.i}"]`),sc=document.querySelector(`#modal [data-rx=mc][data-i="${t.dataset.i}"]`);if(sb){sb.value=m.b;sb.classList.remove('bad')}if(sc){sc.value=m.c;sc.classList.remove('bad')}}}});
 function rxView(){const all=(S.rx||[]).slice().sort((a,b)=>(rxSt(a)=='申請中')-(rxSt(b)=='申請中')||0).sort((a,b)=>(rxSt(b)=='申請中')-(rxSt(a)=='申請中')||(b.createdAt||0)-(a.createdAt||0)),f=S.rxs||'open',in_=(x,v)=>v=='all'||(v=='open'?rxOpen(x):!rxOpen(x)),L=all.filter(x=>in_(x,f));
@@ -1776,7 +1782,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='rs'){S.rs=v}
   else if(a=='rc'){const o=S.orders.find(x=>x.id==t.dataset.o);if(o)rBump(o,+t.dataset.i,t.dataset.f,+t.dataset.d);return}
   else if(a=='rcall'){const o=S.orders.find(x=>x.id==t.dataset.o);if(!o)return;const next=o.items.map(it=>it.st=='已出貨'&&!rOK(it)?{...it,rc:it.q,...(it.rent?{rk:it.q}:{}),rat:Date.now(),rby:who(),lg:[...(it.lg||[]).slice(-9),{s:'全部收回',at:Date.now(),by:who()}]}:it);o.items=next;render();Store.update(o.id,{items:next}).catch(()=>{S.msg='更新失敗，可能沒有寫入權限或連線中斷，請重新整理後再試。';render()});return}
-  else if(a=='slipview'){openSlip(v);return}else if(a=='gsx'){S.gsMsg=null;render();return}
+  else if(a=='tncp'){e.preventDefault();tnCopy(t,v);return}else if(a=='slipview'){openSlip(v);return}else if(a=='gsx'){S.gsMsg=null;render();return}
   else if(a=='slipv'){S.slipV=true;const r=shRec(S.slipNo);if(r)showSlip(r);return}
   else if(a=='slipvno'){S.slipV=false;const r=shRec(S.slipNo);if(r)showSlip(r);return}
   else if(a=='slipvgo'){const r=shRec(v);if(!r)return;const sn=shStat(r).n;if(sn){(async()=>{try{const ur=liveRows(r).filter(x=>{const o=S.orders.find(y=>y.id==x.oid),i=o&&o.items[x.x];return i&&i.sh==r.id&&i.st!='已出貨'});if(!ur.length)return;const by={};ur.forEach(x=>(by[x.oid]=by[x.oid]||[]).push(x.x));
@@ -1837,14 +1843,14 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='nd'){const h=S.hd.reg;if(h.surg){S.ndMsg=true;review();return}h.nd=!h.nd;if(h.nd)h.eta='';review();return}
   else if(a=='inc')S.cart[v]=(S.cart[v]||0)+1;
   else if(a=='dec')S.cart[v]=Math.max(0,(S.cart[v]||0)-1);
-  else if(a=='afb'){f.b=v;if(v!='Nobel Zygoma')f.rent='';else f.t='單顎'}
+  else if(a=='afb'){f.b=v;f.rent='';if(v=='Nobel Zygoma')f.t='單顎'}
   else if(a=='aft'){if(!(v=='全口'&&f.b=='Nobel Zygoma'&&zOther()))f.t=v}
   else if(a=='afc'){if(v=='植體')f.c[v]=f.c[v]?0:1}
-  else if(a=='afr'){if(!(v=='是'&&zLn()))f.rent=v}
+  else if(a=='afr'){if(!(v=='是'&&(f.b=='Nobel Zygoma'?zLn():f.b=='Straumann'&&bLn())))f.rent=v}
   else if(a=='afqi')f.q++;
   else if(a=='afqd')f.q=Math.max(1,f.q-1);
-  else if(a=='aoadd'){if(S.ao.some(x=>x.b==f.b))return;if(f.b=='Nobel Zygoma'?(f.t=='全口'&&zOther()):zFull())return;S.ao.push({n:aoName(f),b:f.b,q:1,rent:f.rent=='是'});S.af=freshAF(AOB.find(b=>!S.ao.some(x=>x.b==b))||f.b,f.t);if(S.af.b=='Nobel Zygoma')S.af.t='單顎'}
-  else if(a=='aorm')S.ao.splice(+v,1);
+  else if(a=='aoadd'){if(S.ao.some(x=>x.b==f.b))return;if(f.b=='Nobel Zygoma'?(f.t=='全口'&&zOther()):zFull())return;const blx=f.b=='Straumann'&&f.rent=='是'&&!bLn();if(blx)S.cart[LNK(BLX)]=1;S.ao.push({n:aoName(f),b:f.b,q:1,rent:f.b=='Nobel Zygoma'&&f.rent=='是',...(blx?{blx:1}:{})});S.af=freshAF(AOB.find(b=>!S.ao.some(x=>x.b==b))||f.b,f.t);if(S.af.b=='Nobel Zygoma')S.af.t='單顎'}
+  else if(a=='aorm'){const x=S.ao[+v];if(x&&x.blx)delete S.cart[LNK(BLX)];S.ao.splice(+v,1)}
   else if(a=='close'){const sp=$('sp_paste');if(sp&&sp.value.trim()){if(!document.querySelector('#modal .spwarn')){const w=document.createElement('div');w.className='spwarn';w.setAttribute('role','alert');w.innerHTML='貼上的內容尚未加入清單，確定要離開嗎？<div><button class="btn g" data-a="spleave">離開，不加入</button><button class="btn" data-a="spstay">繼續編輯</button></div>';const f=document.querySelector('#modal .sticky-f');(f||document.querySelector('#modal .sin')).prepend(w)}return}$('modal').innerHTML='';return}
   if(a=='spstay'){const w=document.querySelector('#modal .spwarn');if(w)w.remove();const sp=$('sp_paste');if(sp)sp.focus();return}
   if(a=='spleave'){$('modal').innerHTML='';return}
