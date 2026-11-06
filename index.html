@@ -119,7 +119,7 @@ td{padding:4px 3px;text-align:center;box-shadow:inset 0 -1px 0 var(--line)}
 .link{background:none;border:0;color:var(--acc);font-weight:600;padding:10px 0;cursor:pointer}
 .cartbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:center;justify-content:space-between;z-index:5}
 .cartbar span{font-weight:600}
-.btn{border:0;background:var(--acc);color:var(--accink);padding:12px 20px;border-radius:10px;font-weight:700;cursor:pointer}
+.btn{border:0;background:var(--acc);color:var(--accink);padding:12px 20px;border-radius:10px;font-weight:700;cursor:pointer}a.btn{display:block;text-align:center;text-decoration:none;box-sizing:border-box}.btn.line{background:#06C755;color:#fff}.apst{list-style:none;margin:12px 0 0;padding:0;counter-reset:ap}.apst li{counter-increment:ap;display:grid;grid-template-columns:24px 1fr;gap:2px 10px;align-items:start;padding:8px 0;border-top:1px solid var(--line);line-height:1.5}.apst li:first-child{border-top:0}.apst li::before{content:counter(ap);width:24px;height:24px;border-radius:50%;background:var(--acc);color:var(--accink);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:-1px}.apst li.ok::before{content:"✓";background:var(--ok);color:#fff}.apst li small{grid-column:2;color:var(--mute)}
 .btn.g{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
 .btn[disabled]{opacity:.45;cursor:default}
 .modal{position:fixed;inset:0;background:rgba(10,20,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:30}
@@ -550,13 +550,17 @@ function authPage(){
   if(!(window.crypto&&crypto.subtle))return '<div class="card"><div class="wn">這個瀏覽器環境不支援帳號登入所需的加密功能，請改用較新的瀏覽器開啟。</div></div>';
   if(FB?A.setup:!A.list.length)return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">建立第一個管理員帳號</h1><p class="sub">目前還沒有任何帳號。第一個建立的帳號會是管理員，可以再新增總倉人員與院所填單人帳號，請由系統負責人自己先建立。</p>
     <label for="su_n">姓名</label><input id="su_n" autocomplete="name"><label for="su_e">電子信箱（登入帳號）</label><input id="su_e" type="email" autocomplete="username"><label for="su_p">密碼（至少 6 碼）</label><input id="su_p" type="password" autocomplete="new-password"><label for="su_p2">再輸入一次密碼</label><input id="su_p2" type="password" autocomplete="new-password">${er}<button class="btn" style="width:100%;margin-top:14px" data-a="setup" ${A.busy?'disabled':''}>建立並登入</button></div>`;
-  if(A.unv)return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">驗證信箱</h1><p class="sub">驗證信已寄到 <b>${esc(A.unv.email)}</b>，點信裡的連結後按「我已驗證」。<br>沒看到的話請找一下<b>垃圾信件匣</b>。</p>${er}<button class="btn" style="width:100%;margin-top:14px" data-a="evchk" ${A.busy?'disabled':''}>我已驗證</button><button class="btn g" style="width:100%;margin-top:8px" data-a="evsend" ${A.busy?'disabled':''}>重寄驗證信</button><button class="link" style="width:100%;margin-top:6px" data-a="evout">換帳號登入</button></div>`;
-  if(A.sm=='done')return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">已送出申請</h1><p class="sub">管理員核可並指定負責院所後，就可以用剛才填的信箱和密碼登入。<br>登入前請先點信箱裡的驗證信，沒看到的話請找一下<b>垃圾信件匣</b>。</p><button class="btn" style="width:100%;margin-top:14px" data-a="smlogin">回登入頁</button></div>`;
-  if(A.sm=='up'){const u=S.su;return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">申請帳號</h1><p class="sub">院所填單人申請。送出後要等管理員核可，才能登入叫貨。</p>
+  if(A.unv)return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">驗證信箱</h1><p class="sub">驗證信已寄到 <b>${esc(A.unv.email)}</b>，點信裡的連結後按「我已驗證」。<br>沒看到的話請找一下<b>垃圾信件匣</b>。</p>${apSteps(1)}${er}<button class="btn" style="width:100%;margin-top:14px" data-a="evchk" ${A.busy?'disabled':''}>我已驗證</button><button class="btn g" style="width:100%;margin-top:8px" data-a="evsend" ${A.busy?'disabled':''}>重寄驗證信</button><button class="link" style="width:100%;margin-top:6px" data-a="evout">換帳號登入</button></div>`;
+  if(A.pnd)return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">等待管理處核准</h1><p class="sub"><b>${esc(A.pnd)}</b> 的信箱已認證。請到官方 LINE 通知管理處核准，核准後再回來登入。</p>${apSteps(2)}${lineBtn()}<button class="btn g" style="width:100%;margin-top:8px" data-a="smlogin">回登入頁</button></div>`;
+  if(A.sm=='done')return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">已送出申請</h1><p class="sub">驗證信已寄到 <b>${esc(A.em||'')}</b>。請先完成信箱認證，再到官方 LINE 通知管理處核准。</p>${apSteps(1)}${lineBtn()}<button class="btn g" style="width:100%;margin-top:8px" data-a="smlogin">回登入頁</button></div>`;
+  if(A.sm=='up'){const u=S.su;return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">申請帳號</h1><p class="sub">院所填單人申請。送出後請先完成信箱認證，再到官方 LINE 通知管理處核准，核准後才能登入叫貨。</p>
     <label for="su_n">姓名</label><input id="su_n" data-su="n" value="${esc(u.n)}" autocomplete="name"><label for="su_e">電子信箱（登入帳號）</label><input id="su_e" type="email" data-su="e" value="${esc(u.e)}" autocomplete="username"><label for="su_p">密碼（至少 6 碼）</label><input id="su_p" type="password" data-su="p" value="${esc(u.p)}" autocomplete="new-password"><label for="su_p2">再輸入一次密碼</label><input id="su_p2" type="password" data-su="p2" value="${esc(u.p2)}" autocomplete="new-password">
     <label>負責的院所（管理員核可時會確認）</label>${clPick('su')}${er}<button class="btn" style="width:100%;margin-top:14px" data-a="supsend" ${A.busy?'disabled':''}>送出申請</button><button class="link" style="width:100%;margin-top:6px" data-a="smlogin">回登入頁</button></div>`}
   return `<div class="card" style="max-width:420px;margin:40px auto"><h1 style="margin:0 0 4px">登入</h1><p class="sub">牙材叫貨系統。還沒有帳號可以申請，管理員核可後即可使用。</p>
     <label for="lg_e">電子信箱</label><input id="lg_e" type="email" autocomplete="username" value="${esc(A.em||'')}"><label for="lg_p">密碼</label><input id="lg_p" type="password" autocomplete="current-password">${er}<button class="btn" style="width:100%;margin-top:14px" data-a="login" ${A.busy?'disabled':''}>登入</button><button class="link" style="width:100%;margin-top:6px" data-a="smup">申請帳號</button>${FB?'':'<button class="btn g" style="width:100%;margin-top:8px" data-a="demoin">預覽版：直接以管理員進入</button>'}${FB?'<button class="link" style="width:100%;margin-top:2px" data-a="forgot">忘記密碼（寄重設信）</button>':''}</div>`}
+/* v370 om：申請完先做信箱認證，認證完到官方 LINE 通知管理處核准 */
+const LINEURL='https://lin.ee/oxDz3kS',lineBtn=()=>`<a class="btn line" style="width:100%;margin-top:14px" href="${LINEURL}" target="_blank" rel="noopener">開啟官方 LINE 通知管理處</a>`,
+  apSteps=n=>`<ol class="apst">${[['送出申請',''],['信箱認證','點信箱裡的驗證信（沒看到請找垃圾信件匣）'],['官方 LINE 通知管理處核准','認證完畢後傳訊息給管理處，核准後就能登入叫貨']].map((x,i)=>`<li class="${i<n?'ok':''}"><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:''}</li>`).join('')}</ol>`;
 function gate(){
   if(!A.ready||!A.me)return authPage();
   if(MODE=='ship'&&!isHQ())return userBar()+`<div class="card" style="max-width:420px;margin:40px auto"><b>沒有權限</b><p class="sub">總倉出貨頁只有總倉與管理員可以進入。</p><button class="btn" data-a="goorder">回院所叫貨頁</button></div>`;
@@ -1369,11 +1373,12 @@ function sheet(h,w){const o=$('modal'),h2=o.querySelector('.sin h2'),m=(h.match(
   o.innerHTML=`<div class="modal" data-a="close"><div class="sheet ${w||''}"><div class="sin">${h}</div></div></div>`;/* v296 om：同一個畫面重繪（點選項）保留捲動位置，不跳回最上方 */
   if(sc)[...o.querySelectorAll('.modal,.sheet,.sin')].forEach((e,k)=>{if(sc[k])e.scrollTop=sc[k]})}
 const surgBox=(d,t,ad,tg,cls,idd)=>`<input ${idd?'id="'+idd+'"':''} type="datetime-local" ${ad} min="${TODAY}T00:00" value="${d?esc(d)+'T'+esc(t||''):''}" class="${cls||''}" aria-label="手術日期與時間" style="min-width:0">`;
-const MISS={daddr:'技工所地址',eta:'預估到貨日期',surg:'手術日期與時間',surgT:'手術時間',pt:'患者姓名',doc:'醫生',staff:'登記人員',dest:'技工所',destOther:'送貨地點'};
-const missing=h=>[...new Set(need().filter(k=>!String(h[k]).trim()).map(k=>k=='surgT'&&!String(h.surg).trim()?'surg':k))].map(k=>MISS[k]||k);
+const MISS={note:'院所統編（特急件拉拉要填在備註）',daddr:'技工所地址',eta:'預估到貨日期',surg:'手術日期與時間',surgT:'手術時間',pt:'患者姓名',doc:'醫生',staff:'登記人員',dest:'技工所',destOther:'送貨地點'};
+/* v371 om：特急件（拉拉）備註要填院所統編（8 碼數字） */const hEmp=(h,k)=>k=='note'?!/(^|\D)\d{8}(\D|$)/.test(h.note||''):!String(h[k]).trim();
+const missing=h=>[...new Set(need().filter(k=>hEmp(h,k)).map(k=>k=='surgT'&&!String(h.surg).trim()?'surg':k))].map(k=>MISS[k]||k);
 /* 器械租借比照 AO 箱：手術日期時間、患者姓名、預估到貨都必填（v242，om） */
 const lnReq=()=>ty()=='reg'&&regItems().some(lnI);
-const need=()=>(ty()=='ao'||lnReq()?['eta','surg','surgT','pt','doc','staff']:['staff'].concat(S.hd.reg.sn?[]:['doc','surg']).concat(S.hd.reg.surg?['pt']:[]).concat(S.hd.reg.nd?[]:['eta'])).concat(S.hd[ty()].dest=='__other'?['destOther']:[]).concat(S.hd[ty()].dk=='t'?['dest','daddr']:[]);
+const need=()=>(ty()=='ao'||lnReq()?['eta','surg','surgT','pt','doc','staff']:['staff'].concat(S.hd.reg.sn?[]:['doc','surg']).concat(S.hd.reg.surg?['pt']:[]).concat(S.hd.reg.nd?[]:['eta'])).concat(S.hd[ty()].dest=='__other'?['destOther']:[]).concat(S.hd[ty()].dk=='t'?['dest','daddr']:[]).concat(S.hd[ty()].rush?['note']:[]);
 function names(k){return [...new Set(S.orders.filter(o=>o.clinic==S.clinic).map(o=>o[k]).filter(Boolean))].map(n=>`<option value="${esc(n)}">`).join('')}
 function spBlock(){return S.spec.length?`<div class="card"><b>已加入的非常規品項</b>${S.spec.map((x,i)=>`<div class="row"><span>${esc(dn(x.n))} × ${x.q}</span><button class="link" style="padding:0" data-a="sprm" data-v="${i}">移除</button></div>`).join('')}</div>`:''}
 function warnHtml(h){if(!h.eta)return '';let s=`<div class="wd">星期${WD[dw(h.eta)]}</div>`;
@@ -1394,7 +1399,7 @@ function destHtml(h,bad){const og=(t,a)=>a.length?`<optgroup label="${t}">${a.ma
    +(h.dest=='__other'?`<input id="h_dop" data-h="destOther" autocomplete="off" placeholder="輸入送貨地點" style="margin-top:6px" value="${esc(h.destOther)}" class="${bad('destOther')}">`:'')
    +(h.dest?`<div class="wn">此訂單由 ${esc(S.clinic)} 叫貨，但會送到「${esc(h.dest=='__other'?(h.destOther||'其他地點'):h.dest)}」，出貨時會依送貨地點彙整。</div>`:'')}
 function review(){if(ty()=='ao'&&!S.ao.length){S.toast='請先加入 AO 箱；只租借器械請到「器械租借」送出';$('modal').innerHTML='';render();scrollTo(0,0);return}if(!S.clinic){S.csel=true;$('modal').innerHTML='';render();scrollTo(0,0);S.toast='請先選擇叫貨院所';render();return}
-  const ao=ty()=='ao',ln=lnReq(),a=items(),h=S.hd[ty()];if(ln){h.sn=false;h.nd=false}const _h=(S._hs=!!h.surg),_m=(h.surg||(S.ndMsg=false)),bad=k=>S.err&&need().includes(k)&&!String(h[k]).trim()?'bad':'';
+  const ao=ty()=='ao',ln=lnReq(),a=items(),h=S.hd[ty()];if(ln){h.sn=false;h.nd=false}const _h=(S._hs=!!h.surg),_m=(h.surg||(S.ndMsg=false)),bad=k=>S.err&&need().includes(k)&&hEmp(h,k)?'bad':'';
   const tg=(t,r)=>`<small class="rq${r?' r':''}">${t}</small>`,big='';/* 確認訂單的輸入欄統一字級（v242，om） */
   const doc=`<label for="h_doc">醫生${!ao&&!ln&&h.sn?tg('選填（診所備貨）'):tg('必填',1)}</label><input id="h_doc" data-h="doc" list="dl_doc" autocomplete="off" placeholder="輸入姓名" value="${esc(h.doc)}" class="${bad('doc')}">`;
   const staff=`<label for="h_staff">登記人員${tg('必填',1)}</label><input id="h_staff" data-h="staff" list="dl_staff" autocomplete="off" placeholder="輸入姓名" value="${esc(h.staff)}" ${A.me&&A.me.role=='clinic'?'readonly':''} class="${bad('staff')}">`;
@@ -1413,7 +1418,7 @@ function review(){if(ty()=='ao'&&!S.ao.length){S.toast='請先加入 AO 箱；�
   ${destHtml(h,bad)}
   <label>配送方式</label><div class="seg">${[[0,'一般配送（順豐）','預設・總倉寄出'],[1,'特急件（拉拉）','趕不及才選・運費院所自付']].map(([v,t,sm])=>`<button class="chip ${!!h.rush==!!v?'on':''}" data-a="rush" data-v="${v}" aria-pressed="${!!h.rush==!!v}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.3;padding:10px 6px"><span>${t}</span><small style="font-size:12px;font-weight:400;opacity:.8">${sm}</small></button>`).join('')}</div>
   <datalist id="dl_doc">${names('doc')}</datalist><datalist id="dl_staff">${names('staff')}</datalist>
-  <label for="h_note">備註<small class="rq">選填</small></label><textarea id="h_note" data-h="note" rows="2" placeholder="特殊需求或備註">${esc(h.note)}</textarea>
+  <label for="h_note">備註${h.rush?tg('必填院所統編',1):'<small class="rq">選填</small>'}</label><textarea id="h_note" data-h="note" rows="2" class="${bad('note')}" placeholder="${h.rush?'院所統編（8 碼）':'特殊需求或備註'}">${esc(h.note)}</textarea>
   <div class="hint" id="suberr"></div>
   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn g" data-a="close">返回修改</button><button class="btn" style="flex:1" data-a="submit">送出叫貨</button></div>`)}
 const SPC=['植體','HAB','Transfer','Analog','Abutment','MUA','Screw','Driver','scanbody','器械','其他'];
@@ -1574,9 +1579,9 @@ async function fbBoot(){
       if(A.mk=='apply')return;
       if(!d.exists){if(A.mk)return;A.err='找不到這個帳號的資料，請聯絡管理員';return au.signOut()}
       const a={id:d.id,...JSON.parse(JSON.stringify(d.data()))};
-      if(a.pending){A.err='帳號申請還在等管理員核可';return au.signOut()}
-      if(a.active===false){A.err='這個帳號已停用，請聯絡總倉管理員';return au.signOut()}
-      if(a.ev&&!u.emailVerified){A.unv=u;A.me=null;A.ready=true;return render()}A.unv=null;/* v358：新帳號要先點驗證信 */
+      if(a.ev&&!u.emailVerified&&a.active!==false){A.unv=u;A.me=null;A.ready=true;return render()}A.unv=null;/* v370：先認證信箱，再等核准 */
+      if(a.pending){A.pnd=u.email;A.err='';return au.signOut()}
+      if(a.active===false){A.err='這個帳號已停用，請聯絡總倉管理員';return au.signOut()}/* v358：新帳號要先點驗證信 */
       const first=!A.me||A.me.id!=a.id,cj=a.role+'|'+cls(a).join();A.me=a;A.err='';syncMe();
       if(first)S.view=MODE=='ship'?'hq':'clinic';
       if(first||A.cj!=cj){A.cj=cj;Store.attach(a)}
@@ -1620,6 +1625,7 @@ async function doApply(){const u=S.su,e=u.e.trim();A.err='';
 async function doLogin(){if(FB){const e=val('lg_e').trim(),p=val('lg_p');A.em=e;A.err='';if(!e||!p){A.err='請填信箱與密碼';return render()}A.busy=true;render();try{await fbau().signInWithEmailAndPassword(e,p)}catch(x){A.err=fbMsg(x.code)}A.busy=false;return render()}
   const e=val('lg_e'),p=val('lg_p'),a=A.list.find(x=>x.id==accId(e));A.em=e;
   A.busy=true;let ok=false;if(a&&a.active!==false&&p){const h=await pwh(p,a.salt);if(h==a.hash){setSess({i:a.id,h});syncMe();ok=!!A.me}}
+  if(!ok&&a&&a.pending){A.busy=false;A.err='';A.pnd=a.email;return render()}
   A.busy=false;A.err=ok?'':(a&&a.pending?'帳號申請還在等管理員核可':a&&a.active===false?'這個帳號已停用，請聯絡總倉管理員':'信箱或密碼不正確');
   if(ok){S.view=MODE=='ship'?'hq':'clinic';S.toast=''}render()}
 function pwSheet(){sheet(`<h2>修改密碼</h2><label for="pw_o">目前密碼</label><input id="pw_o" type="password" autocomplete="current-password"><label for="pw_n">新密碼（至少 6 碼）</label><input id="pw_n" type="password" autocomplete="new-password"><label for="pw_n2">再輸入一次新密碼</label><input id="pw_n2" type="password" autocomplete="new-password">${A.err?`<div class="wn" style="margin-top:8px">${esc(A.err)}</div>`:''}<div style="display:flex;gap:8px;margin-top:12px"><button class="btn g" style="flex:1" data-a="close">取消</button><button class="btn" style="flex:1" data-a="pwsave">儲存</button></div>`)}
@@ -1638,7 +1644,7 @@ async function doTog(id){const a=A.list.find(x=>x.id==id);if(!a||(A.me&&id==A.me
 async function doDel(id){if(A.me&&id==A.me.id)return;if(lastAdm(id)){A.err='至少要保留一位啟用中的管理員';S.del=null;return render()}try{await Store.delAcc(id)}catch(e){A.err='刪除失敗'}S.del=null;render()}
 async function submitOrder(btn){
   const ao=ty()=='ao',h=S.hd[ty()];
-  if(need().some(k=>!String(h[k]).trim())){S.err=true;review();const m=$('suberr');if(m)m.textContent='還不能送出，請補上：'+missing(h).join('、');const b=document.querySelector('.sheet .bad');if(b)b.focus();return}
+  if(need().some(k=>hEmp(h,k))){S.err=true;review();const m=$('suberr');if(m)m.textContent='還不能送出，請補上：'+missing(h).join('、');const b=document.querySelector('.sheet .bad');if(b)b.focus();return}
   if(!isHQ()&&items().length>MAXN){const m=$('suberr');if(m)m.textContent=`一張訂單最多 ${MAXN} 個品項，請分成兩張送出。`;return}
   const a2=items(),d=new Date(),base=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${String(d.getMilliseconds()).padStart(3,'0')}`;let no=base,n2=0;/* v317：加毫秒，避免不同院所同一秒下單撞號（院所只看得到自己的單，查不到別家） */while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
   const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),...(h.dk=='t'&&h.dest?{daddr:(h.daddr||'').trim()}:{}),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),rush:!!h.rush,lab:ao?'':(h.lab||''),staff:h.staff.trim()||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:'待確認',...(ao&&aoV(i)?{dv:1}:{})}))};/* v314 om：所有訂單（含 AO 箱、器械租借）都先進待確認；Straumann AO 箱帶 dv（廠商直送） */
@@ -1880,7 +1886,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='demoseed'){S.toast='';demoSeed();return}
   else if(a=='demoin'){A.noAuto=0;demoIn();return}
   else if(a=='smup'){A.sm='up';A.err='';S.cq=''}
-  else if(a=='smlogin'){A.sm='';A.err=''}
+  else if(a=='smlogin'){A.sm='';A.err='';A.pnd=''}
   else if(a=='supsend'){doApply();return}
   else if(a=='login'){doLogin();return}
   else if(a=='evchk'){A.busy=true;A.err='';render();A.unv.reload().then(()=>{if(fbau().currentUser&&fbau().currentUser.emailVerified)location.reload();else{A.busy=false;A.err='還沒收到驗證，請點信裡的連結（沒收到請看垃圾信件匣）';render()}},x=>{A.busy=false;A.err=fbMsg(x.code);render()});return}
