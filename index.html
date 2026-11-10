@@ -700,7 +700,7 @@ const BRT=b=>b?`<span class="sbr br-${/hiossen/i.test(b)?'h':/nobel/i.test(b)?'n
 const HDg=x=>`<div class="sh1">${x.b?BRT(x.b):''}${x.c?`<span class="scat">${esc(x.c)}</span>`:''}</div>`;
 /* 手動填寫（型錄外）品項：總倉跟院所確認後可在待確認改品名規格／型號，保留原本院所填的 i.n0（v257，om） */
 const isMan=i=>/（型錄外）/.test(i.n),canEd=r=>!!r&&['待確認','待向廠商叫貨'].includes(r.i.st)&&/（特殊規格）|（型錄外）/.test(r.i.n),/* v303 om：特殊規格品項在待確認、待向廠商叫貨都能改品名（還沒叫貨前） */edT=i=>i.n0?` <span class="tag t4 edk" style="white-space:nowrap" title="${esc('原本院所填寫：'+dn(i.n0).replace(/（特殊規格）|（型錄外）/g,'')+(i.ed?'\n'+i.ed.by+' '+ft(i.ed.at)+' 修改':''))}">總倉已修改</span>`:'';
-const NMg=i=>`${esc(ICg(i).n)} <b>× ${i.q}</b>${edT(i)}`;
+const NMg=i=>`${isHQ()?OFT(i):''}${esc(ICg(i).n)} <b>× ${i.q}</b>${edT(i)}`;
 const ITG=(its,li,cls,lic)=>{const m=new Map();its.slice().sort((x,y)=>itemRank(x.n)-itemRank(y.n)||brandRank(x.n)-brandRank(y.n)).forEach(i=>{const x=ICg(i),k=x.b+'|'+x.c;if(!m.has(k))m.set(k,{x,L:[]});m.get(k).L.push(i)});return [...m.values()].map(g=>`<div class="s4g">${HDg(g.x)}<ul class="sits ${cls||''}">${g.L.map(i=>{const c=lic?lic(i):'';return `<li${c?` class="${c}"`:''}>${li?li(i):NMg(i)}</li>`}).join('')}</ul></div>`).join('')};
 const diff=o=>dst(o)!=o.clinic?` · 叫貨：${esc(o.clinic)}`:'';
 const grpBy=(arr,f)=>arr.reduce((m,r)=>((m[f(r)]=m[f(r)]||[]).push(r),m),{});
@@ -936,7 +936,7 @@ function boardView(){
   const GRPB=rs=>{const m=new Map();rs.forEach(r=>{const x=IC(r.i),k=r.o.id+'|'+x.b+'|'+x.c;if(!m.has(k))m.set(k,[]);m.get(k).push(r)});return [...m.values()]};
   /* 同一張訂單合成一列（訂單號、日期只出現一次），列內再依品牌／類別分小標 */
   const GRP=(rs,f)=>{const m=new Map();rs.forEach(r=>{const k=f?f(r):r.o.id;if(!m.has(k))m.set(k,[]);m.get(k).push(r)});return [...m.values()]};
-  const LN=g=>`<ul class="sits">${g.map(r=>`<li>${esc(IC(r.i).n)} <b>× ${r.i.q}</b></li>`).join('')}</ul>`;
+  const LN=g=>`<ul class="sits">${g.map(r=>`<li>${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${r.i.q}</b></li>`).join('')}</ul>`;
   const TG=r=>{const x=IC(r.i);return (x.b?BRT(x.b):'')+(x.c?`<span class="scat">${esc(x.c)}</span>`:'')},
     BODY=g=>GRPB(g).map(s=>(/scat|sbr/.test(HD(s[0]))?HD(s[0]):'')+LN(s)).join('');/* v466 om：後台全區單一品項也換行（標籤一行、品項下一行） */
   const HD=r=>{const x=IC(r.i);return `<div class="sh1">${x.b?BRT(x.b):''}${x.c?`<span class="scat">${esc(x.c)}</span>`:''}</div>`};
@@ -957,7 +957,7 @@ function boardView(){
   const R3=(g,pick)=>{const r=g[0],o=r.o,by=sby(o),x=sd(r),ao=o.type=='ao',sk=pick=='shp',on=sk?ckOn('shp',g):pick&&g.every(selR);
     const ck=sk?(rqOpen(o)?'':ckBox('shp',g)):pick?`<label class="ckl"><input type="checkbox" data-s="pk" data-m="${esc(g.map(y=>o.id+':'+y.x).join(','))}" ${on?'checked':''} aria-label="選這張訂單 #${esc(o.no)}"></label>`:'';
     const mx=ao?`<div class="spt">${o.pt?`<b>${esc(o.pt)}</b>`:'（未填患者）'}${o.doc?'/'+esc(o.doc):''}</div>${o.surg?`<div class="spt">手術 ${mdn(o.surg)}</div>`:''}`:'';/* om：手機一行放不下，手術日自己一行；時間點開訂單看 */
-    /* v467 om：可出貨同一張訂單有兩項以上時，每個品項一個勾，可以拆開出貨；訂單那一列的勾＝整張全選（AO 箱整箱出，不拆） */const gb=pick===true&&!ao&&!rqOpen(o)&&g.length>1?GRPB(g):[],bd=gb.map(s=>(/scat|sbr/.test(HD(s[0]))?`<div class="pkh">${HD(s[0])}</div>`:'')+s.map(y=>{const so=selR(y);return `<div class="pkg${so?' on':''}"><div class="sck"><label class="ckl"><input type="checkbox" data-s="pk" data-m="${esc(o.id+':'+y.x)}" ${so?'checked':''} aria-label="勾選這項"></label></div><ul class="sits"><li>${esc(IC(y.i).n)} <b>× ${y.i.q}</b></li></ul></div>`}).join('')).join('');
+    /* v467 om：可出貨同一張訂單有兩項以上時，每個品項一個勾，可以拆開出貨；訂單那一列的勾＝整張全選（AO 箱整箱出，不拆） */const gb=pick===true&&!ao&&!rqOpen(o)&&g.length>1?GRPB(g):[],bd=gb.map(s=>(/scat|sbr/.test(HD(s[0]))?`<div class="pkh">${HD(s[0])}</div>`:'')+s.map(y=>{const so=selR(y);return `<div class="pkg${so?' on':''}"><div class="sck"><label class="ckl"><input type="checkbox" data-s="pk" data-m="${esc(o.id+':'+y.x)}" ${so?'checked':''} aria-label="勾選這項"></label></div><ul class="sits"><li>${OFT(y.i)}${esc(IC(y.i).n)} <b>× ${y.i.q}</b></li></ul></div>`}).join('')).join('');
     return ROWG(g,DT(o,by?md(by)+' 前出貨':'')+`<div class="stg">${r.i.sh?'':bTag(x)}${g.some(y=>y.i.st=='廠商到貨')?'<span class="tag t3">廠商到貨</span>':''}${rqOpen(o)?'<span class="tag t2">申請取消／修改中</span>':''}${ao&&!r.i.sh?aoRule(o):''}</div>`,false,ck,on,mx,bd)};
   const srt=rs=>rs.slice().sort((x,y)=>(sd(x)??999)-(sd(y)??999)||lvOf(y)-lvOf(x)||String(x.o.no).localeCompare(String(y.o.no),'en',{numeric:true})||byItem(x,y));
   /* 同送貨地點、同一張訂單一組，一個勾選框（預設不勾，勾了才開進出貨單） */
@@ -968,7 +968,7 @@ function boardView(){
   /* v343 om：同品牌同類別的品項併成一組（標籤一行、尺寸逐行），組內不畫分隔線 */
   /* v466 om：單一品項也用同一段（標籤一行、品項下一行），日期和訂單號間距一致；只有一項時標籤列不放勾選框 */const RMC=gs=>{const A=gs.flat(),okA=A.filter(y=>!rqOpen(y.o)),onA=okA.length&&ckOn('shp',okA);
     return `<div class="srw rmc u${Math.max(...A.map(lvOf))}${onA?' on':''}"><div class="rmg"><div class="cfc">${okA.length&&gs.length>1?ckBox('shp',okA):''}</div><div class="sln">${TG(A[0])}</div>`+gs.map(g=>{const r=g[0],ok=g.filter(y=>!rqOpen(y.o)),on=ok.length&&ckOn('shp',ok),q=g.reduce((t,y)=>t+(+y.i.q||0),0),bys=g.map(y=>sby(y.o)).filter(Boolean).sort(),dk='mg:'+dst(r.o)+'|'+r.i.n,op=!!(S.b4o||{})[dk];
-      return `<div class="cfc">${ok.length?ckBox('shp',ok):''}</div><div class="rml${on?' on':''}"><span class="sit">${esc(IC(r.i).n)} <b>× ${q}</b></span><span class="rmo">${g.length>1?`<details class="mgo" data-k="${esc(dk)}"${op?' open':''}><summary>${g.length} 張訂單</summary>${g.map(y=>`<div>${OLK(y.o)} × ${y.i.q}${y.o.nd?'':' · 到貨 '+mdn(y.o.eta)}${rqOpen(y.o)?' <span class="tag t2">申請取消／修改中</span>':''}</div>${XO(y.o)}`).join('')}</details>`:OLK(r.o)}</span>${g.some(y=>y.i.st=='廠商到貨')?'<span class="tag t3">廠商到貨</span>':''}<span class="rmd">${bys.length?`<b>${md(bys[0])}</b> 前出貨`:''}</span></div>${g.length>1?'':`<div class="rmx">${XO(r.o)}</div>`}`}).join('')+`</div></div>`};
+      return `<div class="cfc">${ok.length?ckBox('shp',ok):''}</div><div class="rml${on?' on':''}"><span class="sit">${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${q}</b></span><span class="rmo">${g.length>1?`<details class="mgo" data-k="${esc(dk)}"${op?' open':''}><summary>${g.length} 張訂單</summary>${g.map(y=>`<div>${OLK(y.o)} × ${y.i.q}${y.o.nd?'':' · 到貨 '+mdn(y.o.eta)}${rqOpen(y.o)?' <span class="tag t2">申請取消／修改中</span>':''}</div>${XO(y.o)}`).join('')}</details>`:OLK(r.o)}</span>${g.some(y=>y.i.st=='廠商到貨')?'<span class="tag t3">廠商到貨</span>':''}<span class="rmd">${bys.length?`<b>${md(bys[0])}</b> 前出貨`:''}</span></div>${g.length>1?'':`<div class="rmx">${XO(r.o)}</div>`}`}).join('')+`</div></div>`};
   /* 上方：今天出貨（已開出貨單，包好可一次全部標記已出貨）；下方：可出貨（尚未開單，不限日期都可勾選合併） */
   const fS=f3.filter(r=>r.i.sh),fU=f3.filter(r=>!r.i.sh);
   const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fU.filter(r=>BKr(r)=='now')),nNext=oc(fU.filter(r=>BKr(r)=='next'));/* v466 om：已開出貨單的只在「準備出貨」，今天出貨／下個工作天／全部都只列還沒開單的 */
@@ -978,7 +978,7 @@ function boardView(){
   const secS=kS.length?`<div class="sec3 r"><h3>準備出貨</h3><small>已開出貨單 ${kS.length} 個地點 · ${fS.length} 項</small>${shOK.length?`<span style="margin-left:auto">${ckBox('shp',shOK,'全選','all')}</span>`:''}</div>`
     +kS.map(c=>{const all=gS[c],shs=[...new Set(all.map(r=>r.i.sh))].sort(),n=all.filter(r=>!rqOpen(r.o)).length,rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
       return `<div class="sgx ok"><div class="sgh cfh"><div class="sgt">${n?ckBox('shp',all.filter(r=>!rqOpen(r.o))):''}<b>📦 ${esc(c)}</b><span class="sgn sgq">${all.length} 項</span></div><div class="sg2"><span class="sg2l"><small>出貨單 ${shs.map(k=>isHQ()?`<button class="link olk" style="padding:0" data-a="slipview" data-v="${esc(k)}" title="點出貨單號可以查看、重印或作廢">${esc(k)}</button>`:esc(k)).join('、')}</small></span><span class="cft">${n?'':'<span class="tag t2">院所申請處理前不能出貨</span>'}</span></div></div>
-      ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${GRP(srt(all.filter(r=>r.o.type=='ao'))).map(g=>R3(g,'shp')).join('')}${GRP(GRP(srt(all.filter(r=>r.o.type!='ao')),r=>r.i.n+'|'+(r.i.sp?1:0)),g=>{const x=IC(g[0].i);return x.b+'|'+x.c}).map(RMC).join('')}</div>`}).join(''):'';
+      ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${GRP(srt(all.filter(r=>r.o.type=='ao'))).map(g=>R3(g,'shp')).join('')}${GRP(GRP(srt(all.filter(r=>r.o.type!='ao')),r=>r.i.n+'|'+(r.i.sp?1:0)+'|'+(r.i.of?1:0)),g=>{const x=IC(g[0].i);return x.b+'|'+x.c}).map(RMC).join('')}</div>`}).join(''):'';
   const gU=grpBy(fU,r=>dst(r.o));
   const msdU=k=>Math.min(999,...gU[k].map(r=>sd(r)??998));
   const kU=Object.keys(gU).filter(k=>!F||gU[k].some(r=>BKr(r)==(F=='ship'?'now':F))).sort((x,y)=>msdU(x)-msdU(y)||Math.max(0,...gU[y].map(lvOf))-Math.max(0,...gU[x].map(lvOf))||x.localeCompare(y,'zh'));
