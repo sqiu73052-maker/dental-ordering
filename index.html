@@ -1627,7 +1627,7 @@ const venList=()=>{const x=[...new Set(Object.values(venMap()).filter(v=>v&&v!='
 async function vCopyTxt(m){let ok=false;try{await navigator.clipboard.writeText(m.t);ok=true}catch(e){try{const ta=document.createElement('textarea');ta.value=m.t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e2){}}m.cp=ok?1:-1}
 const HQADDR=['梓程有限公司','台北市中山區南京東路三段189號7樓之一','02-25475277'];
 function venMsg(L,v,dir){/* v501 om：開頭【訂單】；每段標送貨地點《淡水》（只標註是哪張訂單）；句末「請幫我出貨到：」總倉地址；不寫供應商名稱。v502 om：保留「共 N 項，謝謝」；副廠按品牌分段（品牌＞《地點》＞品項），品項不再寫品牌 */
-  const ln=n=>{const x=P7(n);if(x[6])return x[6];const w=[x[2],x[3],x[4]||(x[1]=='植體'?'':x[1]),x[5]].map(y=>String(y||'').trim()).filter(Boolean),u=[];w.forEach(y=>{if(u[u.length-1]!=y)u.push(y)});return u.join(' ')||dn(n)};
+  const ln=n=>{const x=P7(n);/* v517 om：每項都寫類別、尺寸，有品號也附上 */const w=[x[1],x[2],x[3],x[4],x[5]].map(y=>String(y||'').trim()).filter(Boolean),u=[];w.forEach(y=>{if(!u.includes(y))u.push(y)});const t=u.join(' ')||dn(n);return x[6]?t+' '+x[6]:t};
   const ord=(x,y)=>itemRank(x.i.n)-itemRank(y.i.n)||brandRank(x.i.n)-brandRank(y.i.n)||String(dn(x.i.n)).localeCompare(dn(y.i.n),'en',{numeric:true});
   const co=c=>(CL.indexOf(c)+999)%999,out=['【訂單】'];let k=0;
   const sec=(L2,nb)=>{const g=grpBy(L2,r=>dst(r.o)),ks=Object.keys(g).sort((a,b)=>co(a)-co(b)||a.localeCompare(b,'zh'));ks.forEach((d,z)=>{const rs=g[d].slice().sort(ord),m=new Map();rs.forEach(r=>m.set(r.i.n,(m.get(r.i.n)||0)+r.i.q));if(!(nb&&!z))out.push('');out.push(`《${d}》`);m.forEach((q,n)=>{k++;out.push(`${ln(n)} (${q})`)})});return {g,ks}};
