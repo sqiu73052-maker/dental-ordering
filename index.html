@@ -555,6 +555,7 @@ tr.sp>td{height:12px;padding:0;box-shadow:none}
 .oft{display:inline-block;font-size:11px;font-weight:700;line-height:16px;padding:0 4px;border-radius:4px;background:#FFF1E6;color:#B4540A;margin-right:5px;vertical-align:1px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .btn.ofb{background:#B4540A;color:#fff}
 .henb{padding:0 0 0 4px;font-size:13px;white-space:nowrap}
+.rxi{padding:8px 0 6px;border-top:1px solid var(--line)}.rxi .sit{font-size:15px}.rxs{font-size:13px;color:var(--mute);margin-top:2px}.rxn{font-size:13px;margin-top:6px;display:flex;gap:8px}.rxn>span{color:var(--mute);flex:none}.rxf{font-size:12.5px;color:var(--mute);margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)}
 .it .hesp{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin:2px 0 0 4px;padding:2px 0 2px 10px;border-left:2px solid var(--line)}.hesl{font-size:13px;color:var(--mute);margin-right:6px}.it .hesp .link{white-space:nowrap}
 .it .henm{grid-column:1/-1;display:grid;gap:6px;padding:2px 0 4px}
 .henf{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:6px}
@@ -1367,14 +1368,22 @@ function retView(){if(S.rs!='done')S.rs='open';/* v297 om：只分 未收回／�
    存成 type:'rx' 的文件，跟訂單同一個 collection（院所權限不用改）；放在 S.rx，不會混進出貨流程 */
 const RXW=['沒有使用','想換尺寸','瑕疵／故障','植入失敗','其他'],RXB=['Hiossen','Nobel','Straumann','其他'],RXC=['植體','HAB','Transfer','Analog','Abutment','MUA','Screw','Driver','scanbody','器械','耗材','其他'];
 const rxSt=x=>x.st||'申請中',rxOpen=x=>['申請中','已同意','已收到退貨','已寄出換貨'].includes(rxSt(x)),rxReq=()=>(S.rx||[]).filter(x=>rxSt(x)=='申請中');
-const rxXProg=x=>{const o=S.orders.find(y=>y.rxno==x.no&&!y.cx);if(!o)return rxSt(x)=='已寄出換貨'?'<div class="sub" style="margin:6px 0 0;color:var(--ok)">總倉已寄出換貨品項</div>':'';return `<div class="rxxp" style="margin:8px 0 0;padding:8px 10px;border-radius:10px;background:var(--bg)"><b style="font-size:13px">換貨品項出貨進度</b>${isHQ()&&o.no!=x.no?` <small>（訂單 #${esc(o.no)}）</small>`:''}${o.items.map(i=>{const l=myLabel(o,i);return `<div style="margin-top:4px"><span class="tag ${l[1]}">${esc(l[0])}</span> ${esc(dn(i.n))} × ${i.q}</div>`}).join('')}${tnLine(o)}</div>`};
 const rxTag=x=>{const s=rxSt(x);return `<span class="tag ${s=='申請中'?'t0':s=='不同意'?'t2':s=='已完成'?'t1':'t3'}">${s}</span>`};
 const rxMine=()=>(S.rx||[]).filter(mineOK).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 const rxBack=()=>A.me&&A.me.role=='clinic'?(S.rx||[]).filter(x=>rxSt(x)=='已同意'&&cls(A.me).includes(x.clinic)):[];
-function rxCard(x,hq){const its=x.items||[];return `<div class="oh"><b>#${esc(x.no)} ${hq||myCl().length>1?esc(x.clinic):''} ${rxTag(x)}</b><small style="white-space:nowrap">${md(x.od)} 申請</small></div>
-  ${its.map(y=>`<div style="padding:6px 0;border-top:1px solid var(--line)"><div class="sln"><span class="tag ${y.k=='換貨'?'t3':'t4'}">${esc(y.k)}</span>${(g=>`${g.b?BRT(g.b):''}${g.c?`<span class="scat">${esc(g.c)}</span>`:''}<span class="brk"></span><span class="sit" style="font-size:15px">${esc(g.n)} <b>× ${y.q}</b></span>`)(ICg(y))}${y.n0?`<span class="tag t4" title="${esc('原本院所填寫：'+dn(y.n0)+(y.ed?'\n'+y.ed.by+' '+ft(y.ed.at)+' 修改':''))}">總倉已修改</span>`:''}</div>${y.to?`<div class="sln rxto"><span class="rxar">換成</span>${(tn=>tn?(g=>`${g.b?BRT(g.b):''}${g.c?`<span class="scat">${esc(g.c)}</span>`:''}<span class="brk"></span><span class="sit" style="font-size:15px">${esc(g.n)}</span>`)(ICg({n:tn})):`<span class="sit" style="font-size:15px">${esc(y.to)}</span>`)(y.ton||(h=>h&&rxFull(h))(codeHit(y.to)))}</div>`:''}<div class="sub" style="margin:2px 0 0">${esc(y.w)}${y.doc||y.pt?' · 醫師 '+esc(y.doc||'')+' · 病患 '+esc(y.pt||''):''}${y.ono?' · ':''}${y.ono?'原訂單 #'+esc(y.ono):''}${y.sh?' · 出貨單 '+esc(y.sh):''}</div>${y.nt?`<div class="sub" style="margin:2px 0 0">備註：${esc(y.nt)}</div>`:''}</div>`).join('')}
-  ${x.note?`<div class="sub" style="margin:6px 0 0">院所說明：${esc(x.note)}</div>`:''}${x.hn?`<div class="hint" style="margin:6px 0 0">總倉回覆：${esc(x.hn)}</div>`:''}${x.rd&&isHQ()?`<div class="sub" style="margin:6px 0 0">退回品項：${x.rd=='廠商'?'退回廠商':'總倉收著'}</div>`:''}${rxXProg(x)}
-  <small style="color:var(--mute)">${esc(x.staff||x.by||'')}${(x.lg||[]).slice(1).map(l=>` · ${esc(l.s)} ${ft(l.at)}`).join('')}</small>`}
+function rxCard(x,hq){const its=x.items||[];/* v522 om：退換貨卡片重新整理——換成只在品牌類別不同時才標、換貨進度併到換成那行、日期歷程收成一行 */
+  const xo=S.orders.find(y=>y.rxno==x.no&&!y.cx);let xj=0;
+  const TG=g=>`${g.b?BRT(g.b):''}${g.c?`<span class="scat">${esc(g.c)}</span>`:''}`;
+  const IT=y=>{const g=ICg(y),tn=y.to?(y.ton||(h=>h&&rxFull(h))(codeHit(y.to))):'',g2=tn?ICg({n:tn}):null,xi=y.k=='換貨'&&xo?xo.items[xj++]:null,xl=xi?myLabel(xo,xi):null;
+    const sub=[esc(y.w),y.doc||y.pt?`醫師 ${esc(y.doc||'—')} · 病患 ${esc(y.pt||'—')}`:'',y.ono?'原訂單 #'+esc(y.ono):'',y.sh?'出貨單 '+esc(y.sh):'',y.nt?esc(y.nt):''].filter(Boolean).join(' · ');
+    return `<div class="rxi"><div class="sln"><span class="tag ${y.k=='換貨'?'t3':'t4'}">${esc(y.k)}</span>${TG(g)}<span class="brk"></span><span class="sit">${esc(g.n)} <b>× ${y.q}</b></span>${y.n0?`<span class="tag t4" title="${esc('原本院所填寫：'+dn(y.n0))}">總倉已修改</span>`:''}</div>
+    ${y.to?`<div class="sln rxto"><span class="rxar">換成</span>${g2&&(g2.b!=g.b||g2.c!=g.c)?TG(g2):''}<span class="sit">${esc(g2?g2.n:y.to)}</span>${xl?`<span class="tag ${xl[1]}">${esc(xl[0])}</span>`:''}</div>`:''}
+    <div class="rxs">${sub}</div></div>`};
+  const lg=(x.lg||[]).slice(1).map(l=>`${esc(l.s)} ${md(iso(new Date(l.at)))}${l.s=='已收到退貨'&&x.rd&&isHQ()?`（${x.rd=='廠商'?'退回廠商':'總倉收著'}）`:''}`);
+  return `<div class="oh"><b>#${esc(x.no)} ${hq||myCl().length>1?esc(x.clinic):''} ${rxTag(x)}</b><small style="white-space:nowrap">${md(x.od)} 申請</small></div>
+  ${its.map(IT).join('')}
+  ${x.note?`<div class="rxn"><span>說明</span>${esc(x.note)}</div>`:''}${x.hn?`<div class="rxn"><span>總倉回覆</span>${esc(x.hn)}</div>`:''}${xo?tnLine(xo):''}
+  <div class="rxf">${esc(x.staff||x.by||'')}${lg.length?' · '+lg.join(' · '):''}${isHQ()&&xo&&xo.no!=x.no?` · 換貨訂單 #${esc(xo.no)}`:''}</div>`}
 function rxMinePage(){const L=rxMine();return `<div class="card"><button class="btn" style="width:100%" data-a="rxnew">＋ 申請退換貨</button><p class="sub" style="margin:6px 0 0">品項沒用到、想換尺寸，或有瑕疵故障，都可以在這裡申請，送出後會產生退換貨單號，總倉確認後狀態會更新。AO 箱和租借器械請照原本方式寄回。</p></div>`
   +(L.length?L.map(x=>`<div class="card">${rxCard(x)}${rxSt(x)=='已同意'?'<div class="hint" style="margin:6px 0 0">總倉已同意，請把品項寄回管理處。</div>':''}</div>`).join(''):'<div class="card"><div class="empty">還沒有退換貨申請。</div></div>')}
 function rxForm(){const f=S.rxf,P=[];/* v290 om：不從訂單選，院所自己填退換貨資料 */
