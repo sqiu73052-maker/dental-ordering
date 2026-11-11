@@ -619,6 +619,7 @@ body.slipopen>#wrap,body.slipopen>#bar,body.slipopen>.appbar{display:none!import
 .vmbt{display:flex;gap:8px;justify-content:flex-end}
 .vnm{font-size:16px;font-weight:800;padding-left:10px;border-left:4px solid currentColor;line-height:1.2}
 .vg .vsec .cg small{color:var(--mute);font-weight:400;font-size:12px}
+.vg .vsec .cg{justify-content:flex-start}.vg .vsec .cg .ckl.vall{margin-right:10px}.vg .vsec .cg small{margin-left:auto}
 .vg .vsec .vrw{background:var(--card,#fff)}
 .vc1{background:#f9f3f5;border-color:#ecdde3}
 .vc1 .vnm{color:#a54a70}
@@ -1666,7 +1667,7 @@ function vendorView(which){
       const mt=[dst(o)!=o.clinic?'叫貨：'+esc(o.clinic):'',o.note?'備註：'+esc(o.note):''].filter(Boolean).join(' · ');
       return `<div class="srw vrw"><div class="sxl"><div class="sdest vdh"><span class="vdl">${ckBox('ven',rs)}<b>${esc(dst(o))}</b><span class="sno sgq">${q} 件</span></span><span class="sdr">${o.rush?'<span class="tag t2">特急件</span>':''}${utag(u)}${nd}</span></div><div class="vd2">${OLK(o)}</div>${[...m.values()].map(GR).join('')}${mt?`<div class="smeta">${mt}</div>`:''}${XO(o)}</div></div>`};
     const body=[...venList(),'副廠'].filter(v=>gv[v]).map(v=>{const gd=grpBy(gv[v],r=>r.o.id),ds=Object.keys(gd).sort((a,b)=>SRT(gd[a],gd[b])||udk(urgRows(gd[a]))-udk(urgRows(gd[b]))||dst(gd[a][0].o).localeCompare(dst(gd[b][0].o),'zh')||String(gd[a][0].o.no).localeCompare(String(gd[b][0].o.no),'en',{numeric:true})),q=gv[v].reduce((t,r)=>t+r.i.q,0);
-      return `<div class="vsec ${VCLS(v)}"><div class="cg"><span class="vnm">${esc(v)}</span><small>${ds.length} 張 · ${q} 件</small></div><div class="vls">${ds.map(d=>ROW(gd[d],v)).join('')}</div></div>`}).join('');
+      return `<div class="vsec ${VCLS(v)}"><div class="cg">${ckBox('ven',gv[v],'','vall')/* v518 om：供應商全選 */}<span class="vnm">${esc(v)}</span><small>${ds.length} 張 · ${q} 件</small></div><div class="vls">${ds.map(d=>ROW(gd[d],v)).join('')}</div></div>`}).join('');
     const ex=st=='待向廠商叫貨'&&S.vMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.vMsg)}</div>`:'';
     /* v327 om：全選不分供應商，放在欄位最上面（匯出本來就依院所分檔） */return `<div class="col ${cd?'vcd':'vpd'}"><div class="oh"><b>${title}</b><span style="display:flex;align-items:center;gap:10px"><span class="tag ${st=='待向廠商叫貨'?'t0':'t2'}">${rows.reduce((t,r)=>t+r.i.q,0)} 件</span>${rows.length?ckBox('ven',rows,'全選','all'):''}</span></div>${ex}${body||`<div class="empty">${VF.c||VF.b?'沒有符合篩選的品項':'目前沒有品項'}</div>`}</div>`};
   /* v327 om：沒有電話叫貨，拿掉「已叫貨」按鈕，只靠匯出採購單移到已向廠商叫貨 */const P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格勾選，或按右上角「全選」），按下方的「匯出採購單」傳給廠商，匯出後會自動移到「已向廠商叫貨」。'),
