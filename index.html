@@ -554,6 +554,7 @@ tr.sp>td{height:12px;padding:0;box-shadow:none}
 .oh .hqm{margin-left:0}
 .oft{display:inline-block;font-size:11px;font-weight:700;line-height:16px;padding:0 4px;border-radius:4px;background:#FFF1E6;color:#B4540A;margin-right:5px;vertical-align:1px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .btn.ofb{background:#B4540A;color:#fff}
+.btn.dvb{background:#2E7D4F;color:#fff}
 .henb{padding:0 0 0 4px;font-size:13px;white-space:nowrap}
 .rxi{padding:8px 0 6px;border-top:1px solid var(--line)}.rxi .sit{font-size:15px}.rxs{font-size:13px;color:var(--mute);margin-top:2px}.rxn{font-size:13px;margin-top:6px;display:flex;gap:8px}.rxn>span{color:var(--mute);flex:none}.rxf{font-size:12.5px;color:var(--mute);margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)}
 .it .hesp{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin:2px 0 0 4px;padding:2px 0 2px 10px;border-left:2px solid var(--line)}.hesl{font-size:13px;color:var(--mute);margin-right:6px}.it .hesp .link{white-space:nowrap}
@@ -1497,7 +1498,7 @@ const XMIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 /* v471 om：所有匯出都拿掉「特殊規格」欄 */const dropX=rows=>{const ks=rows[0]?['特殊規格','技工所'].map(h=>rows[0].indexOf(h)).filter(k=>k>=0):[];return ks.length?rows.map(r=>r.filter((_,j)=>!ks.includes(j))):rows};/* v478 om：技工所已併在送貨地點，匯出不另列 */
 const XORD=['訂單號','類型','叫貨院所','送貨地點','技工所','叫貨日','類別','原副','品牌','系列','系統','品名','尺寸','品號','特殊規格','數量','叫貨廠商','出貨單號','出貨日','AO回收','手術日','手術時間','醫師','患者','登記人員','特急件','備註'];
 const colOrd=rows=>{if(!rows||!rows.length)return rows;const H=rows[0],sl=[],nm=[];H.forEach((h,k)=>{if(XORD.includes(h)){sl.push(k);nm.push(h)}});if(sl.length<2)return rows;
-  const want=nm.slice().sort((a,b)=>XORD.indexOf(a)-XORD.indexOf(b)),perm=H.map((_,k)=>k);sl.forEach((k,j)=>perm[k]=H.indexOf(want[j]));return rows.map(r=>perm.map(k=>r[k]))};
+  const want=nm.slice().sort((a,b)=>XORD.indexOf(a)-XORD.indexOf(b)),perm=H.map((_,k)=>k);sl.forEach((k,j)=>perm[k]=H.indexOf(want[j]));{/* v523：「廠商」欄放在品牌前面（om；採購明細的廠商在第一欄，不動） */const ov=perm.findIndex(k=>H[k]=='廠商'),ob=perm.findIndex(k=>H[k]=='品牌');if(ov>0&&ob>=0&&ov!=ob-1){const v=perm.splice(ov,1)[0];perm.splice(perm.findIndex(k=>H[k]=='品牌'),0,v)}}return rows.map(r=>perm.map(k=>r[k]))};
 function xlsx(sheets){sheets=sheets.map(sh=>({...sh,rows:colOrd(dropX(sh.rows))}));const enc=new TextEncoder(),X=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,''),HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='http://schemas.openxmlformats.org/',CT=NS+'officeDocument/2006/relationships/';
   const col=n=>{let s='';n++;while(n){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s};
   const sh=rows=>{const w=(rows[0]||[]).map((_,x)=>Math.min(50,Math.max(6,...rows.slice(0,300).map(r=>{const v=String(r[x]==null?'':r[x]).replace(/^="(.*)"$/,'$1');return [...v].reduce((t,ch)=>t+(ch.charCodeAt(0)>255?2:1),0)+2}))));
@@ -1629,7 +1630,7 @@ function boardView(){
   const gsm=S.gsMsg?`<div class="hint" style="margin:0 0 10px">已產生 ${S.gsMsg.length} 張出貨單，點單號開啟列印：${S.gsMsg.map(([n,d])=>`<button class="link" style="padding:0;font-size:13px" data-a="slipview" data-v="${esc(n)}">${esc(n)}</button>（${esc(d)}）`).join('、')} <button class="link" style="padding:0 0 0 8px;font-size:13px" data-a="slipall">全部一起列印</button> <button class="link" style="padding:0 0 0 8px;font-size:12px" data-a="gsx">知道了</button></div>`:'';
   return strip+tiles+srch+gsm+mbar+cbar+rbar+(sel.length?'':sbar)+`<div class="board1${sel.length||cs.length||rsl.length||ssl.length?' hasm':''}">${body||`<div class="card"><div class="empty">${q?'找不到符合的項目':empty}</div></div>`}</div>`}
 /* 供應商：品牌和供應商不同。先看單一品項（耗材）有沒有設定，再看品牌預設；設定在 設定 › 供應商（cfg.ven，總倉共用） */
-const VDEF={'b:Hiossen':'奧齒泰','b:Nobel':'興旺','b:Straumann':'士卓曼','蛇牌 再生膜':'興旺','速吉安':'興旺'},VBR=['Hiossen','Nobel','Straumann'];
+const VDEF={'b:Hiossen':'奧齒泰','b:Nobel':'興旺','b:Straumann':'士卓曼','蛇牌 再生膜':'興旺','速吉安':'興旺','FDBA 5cc':'興旺','海昌方膠':'興旺','Bio-Oss L':'興旺','Bio-Oss S':'興旺','AO縫線':'興旺'}/* v523 om：總倉現有的耗材廠商都是興旺 */,VBR=['Hiossen','Nobel','Straumann'];
 const venMap=()=>({...VDEF,...(S.ven||{})});
 const vendorOf=n=>{const V=venMap(),k=dn(n).replace(/（特殊規格）|（型錄外）/g,'').trim();if(V[k])return V[k];const b=/Hiossen|\(H\)/.test(n)?'Hiossen':/Nobel|\(N\)/.test(n)?'Nobel':/Straumann/i.test(n)?'Straumann':'';return (b&&V['b:'+b])||'其他'};
 const VEN=['奧齒泰','興旺','士卓曼','其他'];const VCLS=v=>({'奧齒泰':'vc1','興旺':'vc2','士卓曼':'vc3','副廠':'vc5'})[v]||'vc4';
@@ -1673,7 +1674,7 @@ function vendorView(which){
   const sec=(st,title,hint)=>{
     const rows=all.filter(r=>r.i.st==st&&fOK(r)),gv=grpBy(rows,r=>r.i.of?'副廠':vendorOf(r.i.n)),cd=st=='已向廠商叫貨';/* v485 om：標成副廠的品項另外一區 */
     /* 一張訂單一格（om：按單採購，不合併數量）；同一張訂單裡重複的同品項才合併成一行 */
-    const LIC=g=>{const r=g[0],q=g.reduce((t,x)=>t+x.i.q,0),cdd=Math.max(...g.map(calledDays));return `${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${q}</b>${edT(r.i)}${g.length>1?` <small style="color:var(--mute)">（${g.length} 張訂單）</small>`:''}${r.o.type=='ao'?' <span class="tag t3">AO</span>':''}${cd&&r.i.dv?' <span class="tag t1">直送院所</span>':''}${cd&&r.i.dv&&cdd>=DVD?` <span class="tag t2" title="院所還沒在「我的訂單」按確認收到，請跟院所或廠商確認">院所 ${cdd} 天未回報收到</span>`:''}${!cd&&g.some(x=>x.i.pe)?` <span class="tag t4" title="已經匯出在採購單裡">已匯出 ${ft(Math.max(...g.map(x=>x.i.pe||0)))}</span>`:''}${cdd>=CALLD&&!(cd&&r.i.dv)?` <span class="tag t2">已叫貨 ${cdd} 天</span>`:''}`};
+    const LIC=g=>{const r=g[0],q=g.reduce((t,x)=>t+x.i.q,0),cdd=Math.max(...g.map(calledDays));return `${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${q}</b>${edT(r.i)}${g.length>1?` <small style="color:var(--mute)">（${g.length} 張訂單）</small>`:''}${r.o.type=='ao'?' <span class="tag t3">AO</span>':''}${cd&&r.i.dv?' <span class="tag t1">直送院所</span>':''}${cd&&r.i.dv&&dvLate(r)>=DVD?` <span class="tag t2" title="院所還沒在「我的訂單」按確認收到，請跟院所或廠商確認">未回報</span>`:''}${!cd&&g.some(x=>x.i.pe)?` <span class="tag t4" title="已經匯出在採購單裡">已匯出 ${ft(Math.max(...g.map(x=>x.i.pe||0)))}</span>`:''}${cdd>=CALLD&&!(cd&&r.i.dv)?` <span class="tag t2">已叫貨 ${cdd} 天</span>`:''}`};
     const MG=L=>{const m=new Map();L.forEach(r=>{const k=r.i.n+'|'+(cd&&r.i.dv?1:0)+'|'+(r.o.type=='ao'?1:0)+'|'+(r.i.of?1:0);if(!m.has(k))m.set(k,[]);m.get(k).push(r)});return [...m.values()]};
     const ROW=(rs,v)=>{rs.sort(byItem);const o=rs[0].o;const m=new Map();rs.forEach(r=>{const x=IC(r.i),k=x.b+'|'+x.c;if(!m.has(k))m.set(k,{x,L:[]});m.get(k).L.push(r)});const u=urgRows(rs),nd=cd?'':rs.map(needTag).find(Boolean)||'',q=rs.reduce((t,r)=>t+r.i.q,0);
       /* v256（om）：同待確認版面——標題列 院所｜件數｜訂單號，右側標籤；勾選欄對齊類別標籤，品項同一條左緣 */
@@ -1687,7 +1688,8 @@ function vendorView(which){
   /* v327 om：沒有電話叫貨，拿掉「已叫貨」按鈕，只靠匯出採購單移到已向廠商叫貨 */const P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格勾選，或按右上角「全選」），按下方的「匯出採購單」傳給廠商，匯出後會自動移到「已向廠商叫貨」。'),
     C=sec('已向廠商叫貨','已向廠商叫貨，等待到貨','勾選後按「到貨」進入可出貨。Straumann AO 箱是廠商直送院所，院所收到會按「確認收到」，也可以勾選後按「院所已收到」。按錯可以勾選後按「退回」。');
   const sel=ckSel('ven',all.filter(r=>VS.includes(r.i.st)&&fOK(r))),sp=sel.filter(r=>r.i.st=='待向廠商叫貨'),sc=sel.filter(r=>r.i.st=='已向廠商叫貨'&&!r.i.dv),sd=sel.filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv),vs=[...new Set(sel.map(r=>vendorOf(r.i.n)))];
-  const bar=ckBar('ven',sel,vs.map(esc).join('、'),(sp.length?`${sp.filter(vmOK).length?`<button class="btn sm" data-a="vmsg" title="勾選的品項整理成 LINE 叫貨訊息，一個供應商一則（士卓曼用 App 下單，不產生）">複製叫貨訊息（${sp.filter(vmOK).length}）</button>`:''}${''/* v504 om：採購單匯出改到 訂單查詢 › 採購明細 */}`:'')+(sc.length?ckBtn('ven','arr','到貨',sc.length):'')+(sd.length?ckBtn('ven','dir','院所已收到',sd.length):'')+ofBtn('ven',sel)+ckBtn('ven','back','退回',sel.filter(r=>!lockSh(r.i)).length,'o'));
+  const ss=sp.filter(r=>!vmOK(r)),sx=r=>!vmOK(r)&&!(r.o.type=='ao'&&aoV(r.i)),scS=sc.filter(sx),sdS=sd.filter(sx);/* v523 om：士卓曼用 App 下單，勾選後直接按「已叫貨」（送總倉）或「已叫貨直送院所」；已叫貨的可以改直送／改送總倉 */
+  const bar=ckBar('ven',sel,vs.map(esc).join('、'),(ss.length?ckBtn('ven','call','已叫貨',ss.length)+ckBtn('ven','calldv','已叫貨直送院所',ss.length,'dvb'):'')+(sp.length?`${sp.filter(vmOK).length?`<button class="btn sm" data-a="vmsg" title="勾選的品項整理成 LINE 叫貨訊息，一個供應商一則（士卓曼用 App 下單，不產生）">複製叫貨訊息（${sp.filter(vmOK).length}）</button>`:''}${''/* v504 om：採購單匯出改到 訂單查詢 › 採購明細 */}`:'')+(sc.length?ckBtn('ven','arr','到貨',sc.length):'')+(sd.length?ckBtn('ven','dir','院所已收到',sd.length):'')+(scS.length?ckBtn('ven','todv','改直送院所',scS.length,'o'):'')+(sdS.length?ckBtn('ven','tohq','改送總倉',sdS.length,'o'):'')+ofBtn('ven',sel)+ckBtn('ven','back','退回',sel.filter(r=>!lockSh(r.i)).length,'o'));
   const nP=oc2('待向廠商叫貨'),nC=oc2('已向廠商叫貨'),vt=S.vtab=='c'?'c':'p';/* v485 om：手機版用按鈕切換待叫貨／已叫貨，不用一直往下拉 */
   const tabs=`<div class="vtabs" role="tablist"><button class="vtb${vt=='p'?' on':''}" data-a="vtab" data-v="p" aria-pressed="${vt=='p'}">待叫貨 <b>${nP}</b></button><button class="vtb${vt=='c'?' on':''}" data-a="vtab" data-v="c" aria-pressed="${vt=='c'}">已叫貨 <b>${nC}</b></button></div>`;
   const VC=S.vCopy,vmod=VC&&VC.L.length?`<div class="cfm vmo" data-a="vmx"><div class="cfb vmw" data-a="noop" role="dialog" aria-modal="true" aria-label="叫貨訊息"><div class="vmtop"><b style="font-size:16px">叫貨訊息</b><button class="btn g sm" data-a="vmx" aria-label="關閉">關閉</button></div><div class="sub" style="margin:4px 0 10px">${VC.L.length>1?`勾到 ${VC.L.length} 個供應商，一個供應商一則，分別複製貼到各自的 LINE 聊天室。`:'貼到 LINE 給廠商之後，按「標記已叫貨」移到「已向廠商叫貨」。'}${VC.sk?`勾選裡有 ${VC.sk} 項士卓曼，用 App 下單，不產生訊息。`:''}</div><div class="vmsc">${VC.L.map((m,k)=>`<div class="vmone ${VCLS(m.vc||m.v)}"><div class="vmh2"><span class="vnm">${esc(m.v)}</span><small>${m.n} 項</small></div><pre class="vmt">${esc(m.t)}</pre><div class="vmbt"><button class="btn sm g" data-a="vmcp" data-v="${k}">${m.cp==1?'已複製 ✓':m.cp==-1?'請長按文字複製':'複製'}</button><button class="btn sm" data-a="vmok" data-v="${k}">標記已叫貨（${m.ks.length}）</button></div></div>`).join('')}</div></div></div>`:'';
@@ -1723,7 +1725,7 @@ function shipPage(){
   const GR=t=>t=='board'?'board':(t=='vpend'||t=='vcalled')?'vendor':t=='ret'?'ret':t=='rx'?'rx':'find',g=GR(tab),
     c1=all.filter(r=>r.i.st=='待確認').length,c3=all.filter(isReady).length,bd=n=>n?`<span class="tag t4" style="margin-left:6px">${n}</span>`:'';
   const tabs=[['board','出貨排程',bd(c1+c3)],[S.subs.vendor,'廠商叫貨',bd(vp+vk)],['ret','回收',bd(ro.length)],['rx','退換貨',bd(rxReq().length)],[S.subs.find=='slips'?'all':S.subs.find,'資料匯出','']]/* v511 om：訂單查詢改名資料匯出 */,
-    subs=g=='find'?[['all','全部訂單'],['hist','歷史出貨'],['po','採購明細']]:[];
+    subs=g=='find'?[['all','訂單明細'],['hist','出貨明細'],['po','採購明細']]/* v523 om 改名 */:[];
   let h=`<div class="shead hqh"><h1>出貨管理</h1><span class="hqr"><button class="link ubi snd${ntOn()?' on':''}" data-a="ntog" title="${ntOn()?'新訂單提示音：開（點一下關閉）':'新訂單提示音：關（點一下開啟）'}" aria-label="新訂單提示音${ntOn()?'開':'關'}" aria-pressed="${ntOn()}">${ntOn()?'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>':'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>'}</button><button class="btn g sm" style="flex:none" data-a="goorder">院所叫貨頁</button></span></div>${S.mode=='db'?'':`<div class="hqlv">${live}</div>`}${S.msg?`<div class="wn" style="margin:0 0 12px">${esc(S.msg)}</div>`:''}${S.toast&&!FB?`<div class="sub" style="margin:0 0 10px;color:var(--ok)">${esc(S.toast)}</div>`:''}${FB?'':`<div class="dsbar"><span>預覽版測試用</span><button class="btn g sm" data-a="demoseed" ${S.dsBusy?'disabled':''}>${S.dsBusy?'產生中…':'產生範例訂單'}</button></div>`}
   <div class="main"><div class="seg tabs hqt">${tabs.map(t=>`<button class="chip ${GR(t[0])==g?'on':''}" data-a="tab" data-v="${t[0]}" aria-pressed="${GR(t[0])==g}"><span class="tl">${t[1]}</span>${t[2]?`<span class="tx">${t[2]}</span>`:''}</button>`).join('')}</div>${subs.length?`<div class="seg subtabs">${subs.map(t=>`<button class="chip ${tab==t[0]?'on':''}" data-a="tab" data-v="${t[0]}" aria-pressed="${tab==t[0]}">${t[1]}</button>`).join('')}</div>`:''}`;
   if(tab=='board')h+=boardView();
@@ -1754,12 +1756,12 @@ const lastShip=o=>Math.max(0,...o.items.map(i=>i.at||0));
 const histOrd=o=>!o.cx&&o.items.some(i=>i.st=='已出貨');/* 有任一品項出貨就收錄（部分出貨也算），方便依出貨日對帳 */
 const shipIn=i=>{if(i.st!='已出貨')return false;if(S.hdt!='ship'||!(S.hdf||S.hde))return true;const d=iso(new Date(i.at||0));return !((S.hdf&&d<S.hdf)||(S.hde&&d>S.hde))};
 const archOrd=o=>!o.cx&&o.items.length>0&&o.items.every(i=>i.st=='已出貨')&&(o.type!='ao'||!rOpen(o))&&Date.now()-lastShip(o)>ARCH;
-const CALLD=5,CALLNEED=3,DVD=2;/* DVD：廠商直送後幾個工作天院所還沒按「確認收到」就提醒總倉 *//* 待確認 2 個工作天內確認（CONFD）；叫貨需求 3 個工作天內向廠商叫貨；已叫貨滿 5 個工作天要向廠商確認進度 */
+const CALLD=5,CALLNEED=3,DVD=2;/* v523 om：士卓曼直送院所，AO 箱從手術日、一般品項從希望到貨日起算，過了 DVD 個工作天還沒按確認收到才提醒（沒有日期才從叫貨日算） */const dvBase=r=>r.o.type=='ao'?(r.o.surg||r.o.eta):r.o.eta,dvLate=r=>{const b=dvBase(r);return b?wdBetween(b,TODAY):calledDays(r)},dvLbl=r=>!dvBase(r)?'廠商出貨':r.o.type=='ao'&&r.o.surg?'手術後':'到貨日後';/* DVD：廠商直送後幾個工作天院所還沒按「確認收到」就提醒總倉 *//* 待確認 2 個工作天內確認（CONFD）；叫貨需求 3 個工作天內向廠商叫貨；已叫貨滿 5 個工作天要向廠商確認進度 */
 const stTs=r=>r.i.at||r.o.createdAt||new Date((r.o.od||TODAY)+'T00:00:00').getTime();
 const calledDays=r=>r.i.st!='已向廠商叫貨'?0:wdSince(stTs(r));
 const needLeft=r=>CALLNEED-wdSince(stTs(r));
 const slaLv=l=>l<=0?3:l==1?2:0;
-const stageLv=r=>{const st=r.i.st;return st=='待確認'?slaLv(confLeft(r.o)):st=='待向廠商叫貨'?slaLv(needLeft(r)):st=='已向廠商叫貨'?slaLv((r.i.dv?DVD:CALLD)-calledDays(r)):0};
+const stageLv=r=>{const st=r.i.st;return st=='待確認'?slaLv(confLeft(r.o)):st=='待向廠商叫貨'?slaLv(needLeft(r)):st=='已向廠商叫貨'?slaLv(r.i.dv?DVD-dvLate(r):CALLD-calledDays(r)):0};
 const lvOf=r=>r.i.st=='已出貨'?0:Math.max(ulv(r.o),stageLv(r));
 const needTag=r=>{const l=needLeft(r);return l<0?`<span class="tag t2">叫貨逾期 ${-l} 天</span>`:l==0?'<span class="tag t2">今天要叫貨</span>':l==1?'<span class="tag t0">明天要叫貨</span>':''};
 
@@ -1773,7 +1775,7 @@ const histField=(o,t)=>{const its=o.items;const F={no:[o.no],slip:its.map(i=>i.s
 const histDate=(o,t)=>t=='ship'?iso(new Date(lastShip(o))):t=='surg'?(o.surg||''):(o.od||'');
 const histSrc=()=>{if(!S.hAll)return S.orders;const m=new Map(S.hAll.map(o=>[o.id,o]));S.orders.forEach(o=>m.set(o.id,o));return [...m.values()]};
 function histLoad(force){if(!isHQ()||S.hLoad||(S.hDone&&!force))return;S.hLoad=true;S.hErr='';
-  Store.histAll().then(a=>{S.hAll=a||null;S.hDone=true;S.hAt=a?Date.now():0},e=>{S.hErr='歷史出貨沒有完整載入，搜尋和匯出可能不完整。請按「重新載入」。'}).then(()=>{S.hLoad=false;if((S.tab=='hist'||S.tab=='po'))render()})}
+  Store.histAll().then(a=>{S.hAll=a||null;S.hDone=true;S.hAt=a?Date.now():0},e=>{S.hErr='出貨明細沒有完整載入，搜尋和匯出可能不完整。請按「重新載入」。'}).then(()=>{S.hLoad=false;if((S.tab=='hist'||S.tab=='po'))render()})}
 const histFiltered=()=>{const F=S.f,qs=S.hq.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return histSrc().filter(histOrd).filter(o=>{if(F.c&&!(o.clinic==F.c||dst(o)==F.c))return false;if(F.t&&o.type!=F.t)return false;
     if(qs.length){const b=histField(o,S.hqt);if(!qs.every(q=>b.includes(q)))return false}
@@ -1788,7 +1790,7 @@ function allList(){const os=S.orders;if(!os.length)return '<div class="card"><di
   const list=os.filter(o=>!archOrd(o)&&cxVis(o)&&ordMatch(o));if(!list.length)return hqBar()+'<div class="hqnone">沒有符合篩選的訂單</div>';
   const PG=20,pages=Math.max(1,Math.ceil(list.length/PG));if(S.hp>=pages)S.hp=pages-1;/* v510 om：三個子分頁都每頁 20 筆 */
   return hqBar()+list.slice().sort(usort).slice(S.hp*PG,S.hp*PG+PG).map(orderCard).join('')+(pages>1?`<div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px"><button class="btn g sm" data-a="hpg" data-v="-1" ${S.hp==0?'disabled':''}>上一頁</button><small>第 ${S.hp+1} / ${pages} 頁（每頁 ${PG} 筆）</small><button class="btn g sm" data-a="hpg" data-v="1" ${S.hp>=pages-1?'disabled':''}>下一頁</button></div>`:'')}
-function histList(){if(S.hLoad)return '<div class="card"><div class="empty">正在從資料庫載入全部歷史出貨…</div></div>';
+function histList(){if(S.hLoad)return '<div class="card"><div class="empty">正在從資料庫載入全部出貨明細…</div></div>';
   if(S.hErr)return `<div class="wn" style="margin:8px 0">${esc(S.hErr)} <button class="link" data-a="hreload">重新載入</button></div>`;
   const list=histFiltered(),PG=20,pages=Math.max(1,Math.ceil(list.length/PG));if(S.hp>=pages)S.hp=pages-1;
   const fd=t=>{const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`};
@@ -1832,7 +1834,8 @@ function p3(n0){const ao=AOP(n0);if(ao)return {n:ao.b+' AO 箱',s:[ao.t,ao.off.l
 /* v336 om：匯出拆成 品牌｜類別｜系統｜系列｜品名｜尺寸｜品號（比照特殊規格表單；對帳看價格用）。名稱以 om 給的型錄為準：有品號就用型錄同品號那一列（常備品若特殊規格有同品號，系統／系列從那列取）；院所畫面文字不變 */
 function p7(n0){const q=p3(n0),ao=AOP(n0);
   if(ao)return {b:ao.b.startsWith('Nobel')?'Nobel':ao.b,c:'AO箱',y:'',l:(ao.b=='Nobel Zygoma'?'Zygoma ':'')+ao.t,n:'AO 箱',s:[ao.off.length?'不含'+ao.off.join('、'):'',ao.rent?'租借器械':''].filter(Boolean).join(' '),p:''};
-  let [b,c,r]=itemCols(n0);if(c=='耗材'||c=='器械租借')return {b,c,y:'',l:'',n:(r||dn(n0)).replace(/（特殊規格）|（型錄外）/g,'').trim(),s:'',p:q.p};
+  let [b,c,r]=itemCols(n0);if(c=='耗材'){/* v523 om：耗材品牌欄空著；最後一個詞是尺寸（S、L、5cc…）放尺寸欄，其他都是品名（Bio-Oss S＝品名 Bio-Oss、尺寸 S） */const w=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim().split(/\s+/).filter(Boolean);let cs='';if(w.length>1&&/^(\d[\d.]*\s*(cc|ml|g|mm|cm)?|XS|S|M|L|XL)$/i.test(w[w.length-1]))cs=w.pop();return {b:'',c,y:'',l:'',n:w.join(' '),s:cs,p:q.p}}
+  if(c=='器械租借')return {b,c,y:'',l:'',n:(r||dn(n0)).replace(/（特殊規格）|（型錄外）/g,'').trim(),s:'',p:q.p};
   let hit=q.p&&codeIdx()[codeKey(q.p)];if(!hit&&SPCAT[b]){const t=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').replace(/^(\(H\)|\(N\)|Hiossen|Nobel|Straumann)\s+/i,'').trim().toLowerCase();for(const cc in SPCAT[b]){const f=SPCAT[b][cc].find(x=>x.replace(/\s*\([^)]*\)/g,'').trim().toLowerCase()==t.replace(/\s*\([^)]*\)/g,'').trim());if(f){hit={b,c:cc,n:f};break}}}/* 品號重複的用型錄全名找 */
   const reg=!!RCODE[dn(n0).trim()]||!!RCODE[String(n0).trim()];let nm;
   if(hit){b=hit.b;c=hit.c;nm=hit.n.replace(/\s*\([^)]*\)/g,' ')}else nm=[q.n,q.s].join(' ').replace(/\s*\([^)]*\)/g,' ');
@@ -1848,13 +1851,14 @@ function p7(n0){const q=p3(n0),ao=AOP(n0);
   if(!y&&b=='Hiossen'&&/^A?ET3([MR])/.test(q.p))y=/^A?ET3M/.test(q.p)?'Mini':'Regular';
   return c=='植體'?{b,c,y,l:rest,n:'',s,p:q.p}:{b,c,y,l:'',n:rest,s,p:q.p}}
 const P7=n=>{const x=p7(n);return [x.b,x.c,x.y,x.l,x.n,x.s,x.p]};
-/* v476 om：常備品＝院所「常規叫貨」表格裡的品項（CAT，不含器械租借），其他都算臨時採購 */let STDN=null;const stdN=n=>{if(!STDN){STDN=new Set();for(const b in CAT){if(b=='器械租借')continue;for(const c in CAT[b]){const ct=CAT[b][c];if(ct.l)ct.l.forEach(x=>STDN.add(x));else for(const r in ct.m)ct.m[r].forEach(w=>STDN.add(ct.n(r,w)))}}}if(STDN.has(n))return true;if(/（特殊規格）|（型錄外）/.test(n))return false;const m=/\(([^()\s]+)\)\s*$/.exec(n),h=m&&codeHit(m[1]);return !!(h&&h.rk)};/* 院所打特殊規格、辨識成常備品號的（品名帶常備品號）也算常備 */
 
+const vCalled=i=>!!(i.st=='待向廠商叫貨'||i.ca||i.ra||i.dv||['已向廠商叫貨','廠商到貨'].some(k=>(i.h||[]).includes(k)||(i.lg||[]).some(x=>x.s==k)));
 function histCsv(os,f,mv){os=os||histFiltered();f=f||shipIn;const D=t=>t?iso(new Date(t)):'';
   let H=['訂單號','類型','特急件','叫貨院所','送貨地點','技工所','叫貨日','手術日','手術時間','患者','醫師',...P7H,'特殊規格','數量','出貨單號','出貨日','AO回收','備註','登記人員','原副'];
-  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,o.rxno?'管理處換貨出庫':lnI(i)?'器械租借':o.type=='ao'?'AO箱':(!stdN(i.n)||(i.h||[]).includes('待向廠商叫貨')||(i.lg||[]).some(x=>x.s=='待向廠商叫貨'))?'臨時採購':'一般出貨'/* om：進過叫貨區（待向廠商叫貨）的也算臨時採購 *//* v474 om：類型跟庫存系統一致，看品項是不是常備品 */,o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...P7(i.n),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||'',i.of?'副':'原'])));
+  const R=[],C=[];os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>C.push(xCat(o,i))&&R.push([`="${o.no}"`,o.rxno?'管理處換貨出庫':lnI(i)?'器械租借':o.type=='ao'?'AO箱':i.dir&&!i.sh?'廠商直送'/* v523 om：士卓曼直送院所 */:vCalled(i)?'臨時採購':'一般出貨'/* v523 om：只有跟廠商叫過貨（到過已向廠商叫貨）的才是臨時採購；總倉用現貨出的一律一般出貨，不看在不在常規表格（總倉有表格外的現貨）。取代 v474／v476 *//* om：進過叫貨區（待向廠商叫貨）的也算臨時採購 *//* v474 om：類型跟庫存系統一致，看品項是不是常備品 */,o.rush?'是':'',o.clinic,dst(o),o.lab||'',o.od||'',o.surg||'',o.surgT||'',o.pt||'',o.doc||'',...P7(i.n),[i.sp?'是':'',/（型錄外）/.test(i.n)?'型錄外':''].filter(Boolean).join('、'),i.q,i.sh||'',D(i.at),o.type=='ao'||lnI(i)?(rOK(i)?'已收回':'未收回'):'',[i.dir&&!i.sh&&o.type=='ao'?'廠商直送':'',o.note||''].filter(Boolean).join('；'),o.staff||'',i.of?'副':'原'])));
   if(mv){/* v354 om：歷史出貨匯出把手術日、手術時間、醫師、患者移到登記人員前面（出貨明細給庫存系統的欄位不動） */const mvN=['手術日','手術時間','醫師','患者'],ix=mvN.map(n=>H.indexOf(n)),rest=H.map((_,k)=>k).filter(k=>!ix.includes(k)),li=rest.indexOf(H.indexOf('登記人員')),ord=[...rest.slice(0,li),...ix,...rest.slice(li)];{const ib=ord.indexOf(H.indexOf('品牌')),ic=ord.indexOf(H.indexOf('類別'));[ord[ib],ord[ic]]=[ord[ic],ord[ib]];ord.splice(ord.indexOf(H.indexOf('技工所')),1);ord.splice(ord.indexOf(H.indexOf('特殊規格')),1)/* v356 om：特殊規格欄不重要；系列在系統前面 */;const iy=ord.indexOf(H.indexOf('系統')),il=ord.indexOf(H.indexOf('系列'));[ord[iy],ord[il]]=[ord[il],ord[iy]];/* v357 om：特急件、備註放最後 */['特急件','備註'].forEach(n=>{const k=H.indexOf(n);ord.splice(ord.indexOf(k),1);ord.push(k)})}/* v355 om：類別在品牌前面；送貨地點已是技工所名稱，不另列技工所 */const re=r=>ord.map(k=>r[k]);H=re(H);R.forEach((r,k)=>R[k]=re(r));const jc=H.indexOf('類別'),jn=H.indexOf('品名'),jb=H.indexOf('品牌'),jp=H.indexOf('品號');R.forEach(r=>r[jn]=nmDd(r[jc],r[jn],r[jb],r[jp]))}
   {/* v466 om：歷史出貨、出貨明細都在類別後面加「原副」欄（原／副） */const jo=H.indexOf('原副');const v=H.splice(jo,1)[0];H.splice(H.indexOf('類別')+1,0,v);R.forEach(r=>{const x=r.splice(jo,1)[0];r.splice(H.indexOf('原副'),0,x)})}
+  {/* v523 om：品牌前面加「廠商」欄（Hiossen 奧齒泰、Nobel 興旺、Straumann 士卓曼、耗材興旺；副廠寫副廠，同採購明細） */const jb=H.indexOf('品牌');H.splice(jb,0,'廠商');let k=0;os.forEach(o=>o.items.filter(i=>f(i,o)).forEach(i=>{R[k++].splice(jb,0,poVen(i))}))}
   const c=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';/* 每格都加引號：試算表若把空白當分隔符號也不會拆欄 */
   return {n:R.length,H,R,C,csv:'\ufeff'+[H,...R].map(r=>r.map(c).join(',')).join('\r\n')}}
 async function dlFile(filename,data,type){let dl=null;try{dl=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){}
@@ -1896,10 +1900,10 @@ function poBook(){const rs=poRows(),D=t=>t?iso(new Date(t)):'',P7m=n=>{const x=P
 function histView(){return hqPanel()+`
   <div id="hlist">${histList()}</div>`}
 /* 院所的信件夾：廠商直送超過 DVD 個工作天還沒按「確認收到」的品項，只給填單人（送出訂單的帳號）；舊訂單沒有填單人就給該院所的帳號 */
-const dvDue=()=>A.me&&A.me.role=='clinic'?allIt().filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv&&calledDays(r)>=DVD&&(r.o.byE?r.o.byE==A.me.email:cls(A.me).includes(r.o.clinic))):[];
+const dvDue=()=>A.me&&A.me.role=='clinic'?allIt().filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv&&dvLate(r)>=DVD&&(r.o.byE?r.o.byE==A.me.email:cls(A.me).includes(r.o.clinic))):[];
 const mailN=()=>!isHQ()?dvDue().length+rxBack().length:rqL().length+cxRows().length+rxReq().length+(isAdm()?pendL().length:0);
 const mailHtml=()=>{if(!isHQ()){const D=dvDue();return `<div class="slh2" style="margin-bottom:8px"><b style="font-size:17px">✉ 通知</b><button class="btn g sm" data-a="close">關閉</button></div>`
-    +(rxBack().length?`<div class="mbx"><b>退換貨已同意，請寄回（${rxBack().length}）</b><div class="sub" style="margin:2px 0 6px">總倉已同意這些退換貨申請，請把品項寄回管理處。</div>${rxBack().map(x=>`<div class="it"><div style="min-width:0"><b>#${esc(x.no)}</b> <small>${esc(x.clinic)} · ${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="rxtab">查看退換貨</button></div>`:'')+(D.length?`<div class="mbx"><b>廠商直送，請確認是否收到（${D.length}）</b><div class="sub" style="margin:2px 0 6px">這些品項由廠商直接送到院所，收到請按「確認收到」；還沒收到請跟總倉聯絡。</div>${D.map(r=>`<div class="it" style="align-items:center"><div style="min-width:0"><b>${esc(dn(r.i.n))} × ${r.i.q}</b> <small>#${esc(r.o.no)} · ${esc(dst(r.o))} · 廠商出貨已 ${calledDays(r)} 個工作天</small></div>${dvBtn(r.o,r.i)}</div>`).join('')}</div>`:'<div class="empty">'+(rxBack().length?'':'目前沒有通知')+'</div>')}
+    +(rxBack().length?`<div class="mbx"><b>退換貨已同意，請寄回（${rxBack().length}）</b><div class="sub" style="margin:2px 0 6px">總倉已同意這些退換貨申請，請把品項寄回管理處。</div>${rxBack().map(x=>`<div class="it"><div style="min-width:0"><b>#${esc(x.no)}</b> <small>${esc(x.clinic)} · ${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="rxtab">查看退換貨</button></div>`:'')+(D.length?`<div class="mbx"><b>廠商直送，請確認是否收到（${D.length}）</b><div class="sub" style="margin:2px 0 6px">這些品項由廠商直接送到院所，收到請按「確認收到」；還沒收到請跟總倉聯絡。</div>${D.map(r=>`<div class="it" style="align-items:center"><div style="min-width:0"><b>${esc(dn(r.i.n))} × ${r.i.q}</b> <small>#${esc(r.o.no)} · ${esc(dst(r.o))} · ${dvLbl(r)}已 ${dvLate(r)} 個工作天</small></div>${dvBtn(r.o,r.i)}</div>`).join('')}</div>`:'<div class="empty">'+(rxBack().length?'':'目前沒有通知')+'</div>')}
   const P=cxRows(),A2=isAdm()?pendL():[];
   return `<div class="slh2" style="margin-bottom:8px"><b style="font-size:17px">✉ 待處理通知</b><button class="btn g sm" data-a="close">關閉</button></div>`
   +(mailN()?'':'<div class="empty">目前沒有需要處理的事項</div>')+rqBar()
@@ -2351,7 +2355,7 @@ async function demoSeed(){if(FB||S.dsBusy)return;S.dsBusy=1;render();
     ['桃園','reg',{eta:wd(4)},[I('Hiossen 3.2*11.5',1,'待向廠商叫貨',1),I('Hiossen 4.0*8.5',1,'總倉出貨',1)]],
     ['新店','reg',{eta:wd(2)},[I('Nobel PCC 5.0*8.5',2,'已向廠商叫貨',7),I('Nobel ACT 5.0*8.5',2,'已向廠商叫貨',7)]],
     ['淡水','reg',{eta:wd(5)},[I('Hiossen 3.2*11.5',1,'已向廠商叫貨',2)]],
-    ['三峽','reg',{eta:wd(3)},[{...I('Nobel ACT 3.5*11.5',2,'已向廠商叫貨',1),dv:1}]],
+    ['三峽','reg',{eta:wd(-3)},[{...I(SPX('Straumann','植體',/BLX RB SLActive 4\.5\*10/),2,'已向廠商叫貨',1),sp:1,dv:1}]],/* v523 om：士卓曼植體有時直送院所 */
     ['大里','reg',{eta:wd(2)},[I('FDBA 5cc',1,'廠商到貨',1)]],
     ['三峽','reg',{nd:true},[I('蛇牌 再生膜',2,'總倉出貨',1)]],
     ['林口','ao',{eta:wd(2),surg:wd(3),surgT:'09:30',pt:'範例患者'},[I('Hiossen 單顎 AO 箱',1,'總倉出貨',1)]],
@@ -2405,7 +2409,7 @@ async function demoSeed(){if(FB||S.dsBusy)return;S.dsBusy=1;render();
     let k2=0;for(const [cl,st,o,k,w,q,to,nt] of RX){if(!o)continue;const no='R'+base+pad(k2++),lg=[{s:'申請',at:now-3*D,by:'範例院所'}];if(st!='申請中')lg.push({s:st=='不同意'?'不同意':'已同意',at:now-2*D,by:'範例'});if(['已收到退貨','已完成'].includes(st))lg.push({s:'已收到退貨',at:now-D,by:'範例'});if(st=='已完成')lg.push({s:'已完成',at:now-3600e3,by:'範例'});
       const x={no,type:'rx',clinic:cl,od:wd(-3),tm:'10:00',st,by:'範例院所',byE:'',staff:'範例院所',test:true,demo:true,note:nt,items:[RI(o,k,w,q,to,'')],lg,...(st=='不同意'?{hn:'已超過可退貨期限'}:{}),...(st=='已收到退貨'?{rd:'總倉'}:st=='已完成'?{rd:'廠商'}:{})};
       const xid=await Store.add(x);if(st=='已收到退貨'&&k=='換貨'){const xn=await rxExOrder(x,x.items.filter(y=>y.k=='換貨'));await Store.update(xid,{xno:xn})}}/* 先建退換貨單再開換貨單（同一個 R 號，跟實際流程一樣） */
-    S.toast='已產生 '+L.length+' 張範例訂單和 '+RX.length+' 筆退換貨，涵蓋叫貨、特殊規格、AO 箱（含 Straumann 直送）、器械租借、向廠商叫貨、今天出貨、可合併出貨、登錄庫存、回收、歷史出貨、取消與申請取消（標「範例」，可到 設定 › 測試資料 一次清除）'}catch(e){S.msg='範例訂單建立失敗：'+(e&&e.message||e)}
+    S.toast='已產生 '+L.length+' 張範例訂單和 '+RX.length+' 筆退換貨，涵蓋叫貨、特殊規格、AO 箱（含 Straumann 直送）、器械租借、向廠商叫貨、今天出貨、可合併出貨、登錄庫存、回收、出貨明細、取消與申請取消（標「範例」，可到 設定 › 測試資料 一次清除）'}catch(e){S.msg='範例訂單建立失敗：'+(e&&e.message||e)}
   S.dsBusy=0;render()}
 
 /* ===== 測試帳號：清除測試訂單 ===== */
@@ -2471,10 +2475,10 @@ const TOURS={
   {s:['.fchs'],t:'② 可出貨：四個篩選',d:'「準備出貨」只看已開出貨單、還沒出貨的；開了出貨單的品項就移到這裡；「今天出貨」是還沒開單、今天要出或逾期的（預設看這個）；也可以切到「下個工作天」或「全部」。',pre:tourTab('board',2)},
   {s:['.board1 .sgx','.board1'],t:'勾選、開單、出貨',d:'同一個送貨地點放在同一框。勾地點標題的框會選整組，也可以只勾單張訂單。勾還沒開單的，下方出現「產生出貨單／標記已出貨／退回」，只有同一個送貨地點能合併，AO 箱要跟常規分開開單。已開出貨單的在上面「準備出貨」區，包好後勾選（或按「全選」）再按「標記已出貨」。點訂單號可以展開細節，點出貨單號可以重印；出貨單上會列出包含的訂單和患者，多張訂單時「訂單」欄用圈號對應。',pre:tourTab('board',2)},
   {s:['.tdb','.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，依叫貨院所分組。可以先按「匯出未登錄出貨品項」匯入庫存系統，再按「全選」、按下方的「✓ 已登錄」一次移走；也可以只勾部分。按錯可以按「復原」。廠商直送的不用登錄。',pre:tourTab('board',3)},
-  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「匯出採購單」（一個院所一張，一個訂單品項一列附訂單號，廠商用代號 H 奧齒泰、N 興旺、S 士卓曼），匯出後自動移到「已向廠商叫貨」，電話叫貨的按「已叫貨」。貨到按「到貨」；按錯可以按「退回」。',pre:tourTab('vpend')},
+  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「複製叫貨訊息」貼到 LINE 給廠商，再按「標記已叫貨」移到「已向廠商叫貨」。士卓曼用 App 下單，勾選後按「已叫貨」（送總倉）或「已叫貨直送院所」；直送的不用到貨、出貨，院所收到會按「確認收到」。貨到按「到貨」；按錯可以按「退回」。',pre:tourTab('vpend')},
   {s:['.cutd','.board1'],t:'AO 箱',d:'AO 箱和常規一起排在「可出貨」，訂單旁標「AO 箱」和手術日。這裡可以調整「本次出貨涵蓋到」哪天：一般單和 AO 箱希望到貨日在這天以前的都會列進「本週出貨」；AO 箱在下週第 2 個工作天以前的標「本週必出」。',pre:()=>{tourTab('board',2)();if(S.d3f!='all'){S.d3f='all';render()}}},
   {s:['.main > .card'],t:'回收',d:'院所寄回 AO 箱或租借器械後，在這裡登記收回數量；Zygoma 租借的器械組另外登記。手術日後超過設定的工作天還沒收回會標示逾期，天數在「設定」修改。',pre:tourTab('ret')},
-  {s:['.seg.subtabs'],t:'資料匯出',d:'用來找訂單，不標逾期顏色。「全部訂單」看每張訂單各品項走到哪一步，取消的反灰排最後、隔天自動清掉；「歷史出貨」只列已出貨的品項，按「匯出試算表」跟院所對帳。兩邊用同一組篩選：選欄位打關鍵字、選日期類型（出貨日／手術日／叫貨日）和區間，再選院所、類型。',pre:tourTab('all')},
+  {s:['.seg.subtabs'],t:'資料匯出',d:'用來找訂單，不標逾期顏色。「訂單明細」看每張訂單各品項走到哪一步，取消的反灰排最後、隔天自動清掉；「出貨明細」只列已出貨的品項，按「匯出試算表」跟院所對帳。兩邊用同一組篩選：選欄位打關鍵字、選日期類型（出貨日／手術日／叫貨日）和區間，再選院所、類型。',pre:tourTab('all')},
   {s:['button[data-a=goset]'],t:'想再看一次？',d:'按右上角的齒輪「設定」，就能重新播放這個導覽。',last:true,pre:()=>{S.d3f=null;tourTab('board',0)()}}]}};
 const TOUR={on:false,id:'',i:0,el:null,tm:0,auto:{}};
 const TVER={order:4,ship:5};/* 導覽內容大改時加版本號，大家會再自動看到一次 */
@@ -2541,7 +2545,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   else if(a=='edsave'){edSave(v);return}
   else if(a=='rxnew'){S.rxf={oid:'',sel:{},man:[{q:1,k:'退貨',w:'沒有使用'}],note:'',err:''};rxForm();return}
   else if(a=='rxed'){rxEdOpen(v);return}else if(a=='rxesave'){rxEdSave();return}
-  else if(a=='rxgo'){rxGo(v);return}else if(a=='rxio'){const f=S.rxf1??TODAY,e2=S.rxe1??TODAY,x=rxIO(f,e2),all=rxRows(y=>(y.od&&(!f||y.od>=f)&&(!e2||y.od<=e2))||rxInR(rxAt(y,'已收到退貨'),f,e2)||rxInR(rxAt(y,'已寄出換貨'),f,e2));const nm=`退換貨入出庫-${fstamp()}.xlsx`;dlFile(nm,xlsx([{name:'院所退回入庫',rows:x.I},{name:'退回廠商',rows:x.V},{name:'退換貨明細',rows:[RXH,...all]}]),XMIME).then(()=>{S.rxioMsg=`已匯出 ${nm}：院所退回入庫 ${x.I.length-1} 筆、退回廠商 ${x.V.length-1} 筆（換貨出庫在登錄庫存的出貨明細，類型「管理處換貨出庫」）`;render()});return}
+  else if(a=='rxgo'){rxGo(v);return}else if(a=='rxio'){const f=S.rxf1??TODAY,e2=S.rxe1??TODAY,x=rxIO(f,e2),all=rxRows(y=>(y.od&&(!f||y.od>=f)&&(!e2||y.od<=e2))||rxInR(rxAt(y,'已收到退貨'),f,e2)||rxInR(rxAt(y,'已寄出換貨'),f,e2));const nm=`退換貨入出庫-${fstamp()}.xlsx`;dlFile(nm,xlsx([{name:'院所退回入庫',rows:x.I},{name:'退回廠商',rows:x.V},{name:'退換貨明細',rows:[RXH,...all]}]),XMIME).then(()=>{S.rxioMsg=`已匯出 ${nm}：院所退回入庫 ${x.I.length-1} 筆、退回廠商 ${x.V.length-1} 筆（換貨出庫在登錄庫存匯出的庫存登錄檔，類型「管理處換貨出庫」）`;render()});return}
   else if(a=='rxs'){S.rxs=v;S.ck.rx={};S.rxNo2=false;render();return}
   else if(a=='rxtab'){S.mailOn=false;$('modal').innerHTML='';if(isHQ()){S.tab='rx';if(MODE!='ship')go('ship');else render()}else{S.view='mine';S.mt='rx';if(MODE!='order')go('order');else render()}return}
   else if(a=='ckgo'){const k=t.dataset.k,m=CK(k),pr=Object.keys(m).map(key=>{const [id,x]=key.split(':'),o=S.orders.find(y=>y.id==id);return o&&o.items[+x]?{o,x:+x,i:o.items[+x]}:null}).filter(Boolean),done=rs=>rs.forEach(r=>delete m[kOf(r)]);
@@ -2550,8 +2554,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
     if(v=='of1'||v=='of0'){const f1=v=='of1',L=pr.filter(r=>!lockSh(r.i)&&r.i.st!='已出貨'&&!!r.i.of!=f1),by={};done(L);L.forEach(r=>(by[r.o.id]=by[r.o.id]||{o:r.o,xs:[]}).xs.push(r.x));S.msg='';
       (async()=>{for(const id in by){const {o,xs}=by[id],next=o.items.map((it,j)=>xs.includes(j)?{...it,of:f1?1:0,lg:[...(it.lg||[]).slice(-9),{s:f1?'設為副廠':'取消副廠',at:Date.now(),by:who()}]}:it);o.items=next;try{await Store.update(o.id,{items:next})}catch(e){S.msg='更新失敗，可能沒有寫入權限或連線中斷，請重新整理後再試。'}}render()})();return}
     if(v=='hq'||v=='need'){const L=pr.filter(r=>r.i.st=='待確認');done(L);const V=L.filter(r=>aoV(r.i)),H=v=='hq'?L.filter(r=>!aoV(r.i)):[],N=v=='hq'?V:L;/* Straumann AO 箱一律走廠商叫貨 */(async()=>{if(H.length)await setSt(H,'總倉出貨');if(N.length)await setSt(N,'待向廠商叫貨')})();return}
-    if(v=='call'||v=='calldv'){const L=pr.filter(r=>r.i.st=='待向廠商叫貨');done(L);if(L.length)setSt(L,'已向廠商叫貨',false,v=='calldv'?{dv:1}:undefined);return}/* v313：不帶 dv，保留 Straumann AO 箱的直送標記 */
-    if(v=='todv'||v=='tohq'){const d1=v=='todv',L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&!!r.i.dv!=d1),by={};done(L);L.forEach(r=>(by[r.o.id]=by[r.o.id]||{o:r.o,xs:[]}).xs.push(r.x));S.msg='';
+    if(v=='call'||v=='calldv'){const L=pr.filter(r=>r.i.st=='待向廠商叫貨'&&!vmOK(r));done(L);if(!L.length){render();return}/* v523：只給士卓曼（其他供應商用 LINE 叫貨訊息）；Straumann AO 箱一律直送；送總倉的清掉舊的直送標記 */const A0=L.filter(r=>r.o.type=='ao'&&aoV(r.i)),B0=L.filter(r=>!A0.includes(r));(async()=>{if(A0.length)await setSt(A0,'已向廠商叫貨');if(B0.length)await setSt(B0,'已向廠商叫貨',false,{dv:v=='calldv'?1:0})})();return}/* v313：不帶 dv，保留 Straumann AO 箱的直送標記 */
+    if(v=='todv'||v=='tohq'){const d1=v=='todv',L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&!!r.i.dv!=d1&&!(r.o.type=='ao'&&aoV(r.i))),by={};done(L);L.forEach(r=>(by[r.o.id]=by[r.o.id]||{o:r.o,xs:[]}).xs.push(r.x));S.msg='';
       (async()=>{for(const id in by){const {o,xs}=by[id],next=o.items.map((it,j)=>xs.includes(j)?{...it,dv:d1?1:0,lg:[...(it.lg||[]).slice(-9),{s:d1?'改成廠商直送':'改成送總倉',at:Date.now(),by:who()}]}:it);o.items=next;try{await Store.update(o.id,{items:next})}catch(e){S.msg='更新失敗，可能沒有寫入權限或連線中斷，請重新整理後再試。'}}render()})();return}
     if(v=='arr'){const L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&!r.i.dv);done(L);if(L.length)setSt(L,'廠商到貨');return}
     if(v=='dir'){const L=pr.filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv);done(L);if(L.length)setSt(L,'已出貨',false,{dir:1});return}
@@ -2606,8 +2610,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
     setSt(L.map(r=>({o:r.o,x:r.x})),'已向廠商叫貨').then(()=>{S.vMsg=`${m.v}：${L.length} 個品項已移到「已向廠商叫貨」。`;render()});return}
   else if(a=='pocsv'){const b=poBook();if(!b.n)return;const nm=`採購明細-${fstamp()}.xlsx`;dlFile(nm,xlsx(b.sheets),XMIME).then(()=>{S.pMsg=`已匯出 ${b.n} 個品項（${nm}），第一頁是全部，後面每個供應商一頁。`},e=>{S.pMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(()=>{const P=$('plist');if(P)P.innerHTML=poList()});return}
   else if(a=='hreload'){histLoad(true);render();return}
-  else if(a=='todaycsv'){const x=histCsv(S.orders.filter(o=>!o.cx),(i,o)=>needRegI({o,i}));if(!x.n){S.tdMsg='沒有尚未登錄庫存的出貨品項。';render();return}const nm=`出貨明細-${fstamp()}.xlsx`;dlFile(nm,xBook(x,y=>y.od==TODAY),XMIME).then(()=>{S.tdMsg=`已匯出 ${x.n} 個品項（${nm}）`},e=>{S.tdMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(render);return}
-  else if(a=='hcsv'){if(S.hLoad||S.hErr){S.hMsg='';render();return}let x;const d=new Date(),ymd=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;if(v=='today'){const sv=[S.hq,S.hdt,S.hdf,S.hde];S.hq='';S.hdt='ship';S.hdf=S.hde=iso(d);try{x=histCsv(null,null,1)}finally{[S.hq,S.hdt,S.hdf,S.hde]=sv}if(!x.n){S.hMsg='今天還沒有出貨的品項。';const h=$('hlist');if(h)h.innerHTML=histList();return}}else x=histCsv(null,null,1);const nm=`${v=='today'?'出貨明細':'歷史出貨'}-${fstamp()}.xlsx`,rf=v=='today'?(y=>y.od==iso(d)):(y=>(!S.hdf||(y.od||'')>=S.hdf)&&(!S.hde||(y.od||'')<=S.hde));dlFile(nm,xBook(x,rf),XMIME).then(()=>{S.hMsg=`已匯出 ${x.n} 個品項（${nm}），可用 Excel 或 Google 試算表開啟。`},e=>{S.hMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(()=>{const h=$('hlist');if(h)h.innerHTML=histList()});return}
+  else if(a=='todaycsv'){const x=histCsv(S.orders.filter(o=>!o.cx),(i,o)=>needRegI({o,i}));if(!x.n){S.tdMsg='沒有尚未登錄庫存的出貨品項。';render();return}const nm=`庫存登錄-${fstamp()}.xlsx`;dlFile(nm,xBook(x,y=>y.od==TODAY),XMIME).then(()=>{S.tdMsg=`已匯出 ${x.n} 個品項（${nm}）`},e=>{S.tdMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(render);return}
+  else if(a=='hcsv'){if(S.hLoad||S.hErr){S.hMsg='';render();return}let x;const d=new Date(),ymd=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;if(v=='today'){const sv=[S.hq,S.hdt,S.hdf,S.hde];S.hq='';S.hdt='ship';S.hdf=S.hde=iso(d);try{x=histCsv(null,null,1)}finally{[S.hq,S.hdt,S.hdf,S.hde]=sv}if(!x.n){S.hMsg='今天還沒有出貨的品項。';const h=$('hlist');if(h)h.innerHTML=histList();return}}else x=histCsv(null,null,1);const nm=`${v=='today'?'今天出貨明細':S.subs.find=='all'?'訂單明細':'出貨明細'}-${fstamp()}.xlsx`,rf=v=='today'?(y=>y.od==iso(d)):(y=>(!S.hdf||(y.od||'')>=S.hdf)&&(!S.hde||(y.od||'')<=S.hde));dlFile(nm,xBook(x,rf),XMIME).then(()=>{S.hMsg=`已匯出 ${x.n} 個品項（${nm}），可用 Excel 或 Google 試算表開啟。`},e=>{S.hMsg=e&&e.code=='declined'?'':'匯出失敗，請重試。'}).then(()=>{const h=$('hlist');if(h)h.innerHTML=histList()});return}
   else if(a=='hqclr'){S.hMsg='';S.pMsg='';S.hq='';S.hdf='';S.hde='';S.f.c='';S.f.t='';S.hp=0;render();return}
   else if(a=='hpg'){S.hp=Math.max(0,S.hp+(+v));render();scrollTo(0,0);return}
   else if(a=='tab'){S.tab=v;if(v=='vpend'||v=='vcalled')S.subs.vendor='vpend';if(v=='ao'||v=='ret')S.subs.ao=v;if(v=='all'||v=='slips'||v=='cx'||v=='hist'||v=='po'){S.subs.find=v;S.hp=0}}
