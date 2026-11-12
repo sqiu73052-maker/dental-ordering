@@ -1753,7 +1753,8 @@ function accPage(){
       <div class="acts"><button class="btn sm" data-a="acap" data-o="${esc(a.id)}">核可</button><button class="link" style="padding:2px 0;font-size:12px" data-a="acdel" data-o="${esc(a.id)}">拒絕</button></div></div>`;
   const pend=P.length?`<div class="card" style="border-color:var(--acc)"><b>待核可申請（${P.length}）</b><p class="sub" style="margin:2px 0 0">核可後對方就能用自己申請時填的密碼登入。</p>${P.map(prow).join('')}</div>`:'';
   return pend+form+`<div class="card"><b>帳號列表（${L.length}）</b>${nAdm?'':'<div class="wn">目前沒有啟用中的管理員</div>'}<div class="acsc">${L.map(row).join('')}</div></div>`+(setTimeout(acFade,0),'')}/* v480 om：帳號列表放在可捲動的區塊，大約顯示 5 個 */
-function shipPage(){
+const uncxFix=()=>{if(!isHQ()||S.uncxFixed||!S.orders.length||S.mode=='pending')return;S.uncxFixed=1;S.orders.forEach(o=>{const u=o.uncx;if(o.cx||!u||o.req||!/^院所申請：/.test(u.r||''))return;const req={k:'cx',st:'open',txt:u.r.replace(/^院所申請：/,''),at:u.was||u.at||0,by:''};o.req=req;Store.update(o.id,{req}).catch(()=>{})})};/* v528：v525/v526 復原時把院所的取消申請清掉了，用 uncx 裡留的原因補回「申請取消中」 */
+function shipPage(){uncxFix();
   const os=S.orders,all=allIt(),tab=S.tab=='vendor'||S.tab=='vcalled'?'vpend':(S.tab=='acc'||S.tab=='ao'?'board':S.tab=='slips'?'all':S.tab)/* 出貨單分頁 v250 拿掉（om） */,vp=all.filter(r=>r.i.st=='待向廠商叫貨').length,vk=all.filter(r=>r.i.st=='已向廠商叫貨').length;
   const live=S.mode=='db'?'<span class="live">● 已連線，訂單即時更新</span>':S.mode=='local'?'<span class="live off">目前沒有連線到共用資料庫，只顯示這個瀏覽器收到的訂單</span>':S.mode=='error'?'<span class="live off">與共用資料庫的連線中斷，請重新整理頁面</span>':'<span class="live">連線中…</span>';
   const ro=S.orders.filter(rOpen),rl=ro.filter(o=>rLate(o)>0);
@@ -1772,7 +1773,7 @@ function shipPage(){
   else if(tab=='rx')h+=rxView();
   else{
     h+=hqPanel()+`<div id="alist">${allList()}</div>`}
-  const UX=S.ucx&&S.orders.find(o=>o.id==S.ucx);if(UX)h+=`<div class="cfm vmo" data-a="ucxx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定復原訂單 #${esc(UX.no)} ${esc(UX.clinic)}？</b><div class="sub" style="margin:6px 0 14px">取消會撤銷，${UX.items.length} 個品項回到取消前的狀態（${[...new Set(UX.items.map(i=>i.st))].map(esc).join('、')}），照原本流程繼續。</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucxx">取消</button><button class="btn" data-a="ucxok">確定復原</button></div></div></div>`;
+  const UX=S.ucx&&S.orders.find(o=>o.id==S.ucx);if(UX)h+=`<div class="cfm vmo" data-a="ucxx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定復原訂單 #${esc(UX.no)} ${esc(UX.clinic)}？</b><div class="sub" style="margin:6px 0 14px">${UX.req&&UX.req.k=='cx'?`這張是院所申請取消的，復原後回到「申請取消中」，請再到信件夾重新同意或不同意。`:`取消會撤銷，`}${UX.items.length} 個品項回到取消前的狀態（${[...new Set(UX.items.map(i=>i.st))].map(esc).join('、')}）${UX.req&&UX.req.k=='cx'?'，處理前不會出貨':'，照原本流程繼續'}。</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucxx">取消</button><button class="btn" data-a="ucxok">確定復原</button></div></div></div>`;
   const U=S.ucf;if(U)h+=`<div class="cfm vmo" data-a="ucfx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定把 ${U.n} 項退回「${U.to.map(esc).join('／')}」？</b><div class="sub" style="margin:6px 0 14px">${U.to.includes('準備出貨')?'已出貨的品項會回到準備出貨，出貨單保留。':U.to.length>1?'各品項會退回各自的上一步。':'按錯可以再往下一步操作。'}</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucfx">取消</button><button class="btn" data-a="ucfok">確定退回</button></div></div></div>`;/* v512 om：退回先確認 */
   return h+'</div>'}
 const vTime=(it,st,ex,undo)=>{const n=Date.now();if(st=='待向廠商叫貨'||st=='待確認'){const {ca,ra,...r}=it;return r}
@@ -2571,7 +2572,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
     if(!L.length)return;const to=[...new Set(L.map(r=>r.i.st=='已出貨'&&r.i.sh?'準備出貨':prevOf(r.i)))];S.ucf={ds:{...t.dataset},n:L.length,to};render();return}
   if(a=='uncx'){S.ucx=t.dataset.o;$('modal').innerHTML='';render();return}
   if(a=='ucxx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucx=null;render()}return}
-  if(a=='ucxok'){const o=S.orders.find(x=>x.id==S.ucx);S.ucx=null;if(!o||!o.cx){render();return}const patch={cx:0,cxAt:0,cxBy:'',cxr:'',cxOk:false,uncx:{at:Date.now(),by:who(),r:o.cxr||'',was:o.cxAt||0},...(o.req&&o.req.k=='cx'?{req:null}:{})};Object.assign(o,patch);S.toast='已復原訂單 #'+o.no;render();Store.update(o.id,patch).catch(()=>{S.msg='復原失敗，請重新整理後再試。';render()});return}
+  if(a=='ucxok'){const o=S.orders.find(x=>x.id==S.ucx);S.ucx=null;if(!o||!o.cx){render();return}const rq=o.req&&o.req.k=='cx'?o.req:null,patch={cx:0,cxAt:0,cxBy:'',cxr:'',cxOk:false,uncx:{at:Date.now(),by:who(),r:o.cxr||'',was:o.cxAt||0,...(rq?{rq}:{})},...(rq?{req:{k:'cx',st:'open',txt:rq.txt||'',at:rq.at||0,by:rq.by||''}}:{})};Object.assign(o,patch);S.toast=rq?'已復原 #'+o.no+'，回到院所申請取消中':'已復原訂單 #'+o.no;/* om 11-13：院所申請的取消，復原後回到「申請取消中」，總倉重新同意或拒絕；總倉自己取消的才回到沒取消 */render();Store.update(o.id,patch).catch(()=>{S.msg='復原失敗，請重新整理後再試。';render()});return}
   if(a=='ucfx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucf=null;render()}return}
   if(a=='ucfok'){const c=S.ucf;S.ucf=null;if(!c)return;const b=document.createElement('button');Object.assign(b.dataset,c.ds,{cf:'1'});b.style.display='none';document.body.appendChild(b);b.click();b.remove();render();return}
   if(a=='close'&&t.classList.contains('modal')&&e.target!==t)return;
