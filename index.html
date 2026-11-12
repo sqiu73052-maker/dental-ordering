@@ -253,6 +253,7 @@ input.big{font-size:18px;font-weight:600;padding:14px 12px}
 .t3{background:var(--bluebg);color:var(--blue)}
 .t4{background:var(--bg);color:var(--mute)}
 .tcx{background:var(--rose);color:var(--card)}
+.mxb .meta{margin-bottom:0}.mxb{margin:8px 0 4px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
 .toast{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-weight:600}
 .oh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .oh small{color:var(--mute)}
@@ -1117,12 +1118,13 @@ function reloadCart(o){
   const h=S.hd.reg;h.eta=o.eta||'';h.nd=!!o.nd;h.doc=o.doc||'';h.lab=o.lab||'';h.note=o.note||'';h.dk='c';h.dest='';h.destOther='';
   if(o.dest&&o.dest!=o.clinic){if(TECH.includes(o.dest)){h.dk='t';h.dest=o.dest}else if(CL.includes(o.dest))h.dest=o.dest;else{h.dest='__other';h.destOther=o.dest}}
   S.clinic=o.clinic;go('order');S.view='clinic';S.toast=`已取消 #${o.no}，原品項已放進購物車（共 ${o.items.length} 項）。修改後按「確認訂單」重新送出。`;render()}
+const MXL=o=>`<button class="olk" data-a="mxo" data-v="${esc(o.id)}" aria-expanded="false">#${esc(o.no)} <span>▸</span></button>`,MXB=(o,m)=>`<div class="mxb" id="mxb_${esc(o.id)}" hidden>${m?orderCard(o).M:orderCard(o).B}</div>`;/* om 11-13：信件夾的取消卡片點訂單號展開整張單的內容（不重畫，打到一半的回覆不會不見） */
 const rqInfo=o=>{const q=o.req;if(q&&q.st=='open')return `<div class="wn" style="margin:6px 0 0">已送出申請（${RQK[q.k]}）：${esc(q.txt)}<br><small>${ft(q.at)} ${esc(q.by||'')}・等待總倉處理，處理前這張訂單不會出貨。</small></div>`;
   const r=q?`<div class="sub" style="margin:6px 0 0;color:${q.st=='ok'?'var(--ok)':'var(--rose)'}">總倉${q.st=='ok'?(q.k=='cx'?'已同意取消':'已依申請修改'):'不同意'}申請（${RQK[q.k]}）${q.reply?'：'+esc(q.reply):''}<small style="color:var(--mute)">・${ft(q.rat)} ${esc(q.rby||'')}</small></div>`:'';
   return lockO(o)&&!o.cx?r+`<div class="sub" style="margin:6px 0 0">總倉已向廠商叫貨或已開出貨單，訂單不能直接修改或取消；要取消請送出申請，由總倉確認。</div><button class="btn sm" style="margin-top:6px" data-a="rqopen" data-o="${esc(o.id)}">申請取消</button>`:r};
 const rqL=()=>S.orders.filter(o=>!o.cx&&rqOpen(o));
 function rqBar(){const L=rqL();if(!L.length)return '';
-  return `<div class="mbx"><b style="color:var(--rose)">院所申請取消（${L.length}）</b><div class="sub" style="margin:2px 0 6px">處理前這些訂單不能出貨。</div>${L.map(o=>{const q=o.req;return `<div class="cbk"><div class="slh2"><span><b>#${esc(o.no)} ${esc(dst(o))}</b> <span class="tag t2">申請${RQK[q.k]}</span></span><small>${ft(q.at)} ${esc(q.by||'')}</small></div><div style="margin:4px 0;overflow-wrap:anywhere">${esc(q.txt)}</div><input id="rqr_${esc(o.id)}" placeholder="回覆院所（選填）" autocomplete="off"><div class="bact"><button class="btn g sm" data-a="rqno" data-o="${esc(o.id)}">不同意</button><button class="btn sm" data-a="rqok" data-o="${esc(o.id)}">${q.k=='cx'?'同意取消':'已處理'}</button></div></div>`}).join('')}</div>`}
+  return `<div class="mbx"><b style="color:var(--rose)">院所申請取消（${L.length}）</b><div class="sub" style="margin:2px 0 6px">處理前這些訂單不能出貨。</div>${L.map(o=>{const q=o.req;return `<div class="cbk"><div class="slh2"><span>${MXL(o)} <b>${esc(dst(o))}</b> <span class="tag t2">申請${RQK[q.k]}</span></span><small>${ft(q.at)} ${esc(q.by||'')}</small></div>${MXB(o)}<div style="margin:4px 0;overflow-wrap:anywhere">${esc(q.txt)}</div><input id="rqr_${esc(o.id)}" placeholder="回覆院所（選填）" autocomplete="off"><div class="bact"><button class="btn g sm" data-a="rqno" data-o="${esc(o.id)}">不同意</button><button class="btn sm" data-a="rqok" data-o="${esc(o.id)}">${q.k=='cx'?'同意取消':'已處理'}</button></div></div>`}).join('')}</div>`}
 function editBox(o){
   if(!(isHQ()||!o.byE||(A.me&&o.byE==A.me.email)))return `<div class="sub" style="margin:8px 0 0">只有填單人（${esc(o.by||o.staff||'')}）或總倉可以修改、取消這張訂單。</div>`;
   const e=S.ed&&S.ed.id==o.id?S.ed:null,ao=o.type=='ao',noShip=!o.items.some(i=>i.st=='已出貨'),inV=o.items.some(i=>['已向廠商叫貨','廠商到貨'].includes(i.st));
@@ -1322,7 +1324,7 @@ function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o
   if(!ao&&shOne(o))h+=`<div class="sub" style="margin:6px 0 0">出貨單${shT(o.items[0])}</div>`;
   h+=tnLine(o);/* v318 om：院所追蹤貨運單號（總倉在登錄庫存輸入） */
   if(ao){const shn=[...new Set(o.items.filter(i=>i.sh).map(i=>i.sh))];if(op)h+=`<div class="sub" style="margin:8px 0 0">待出貨，請到「出貨排程」操作。</div>`;if(shn.length&&isHQ())h+=`<div class="sub" style="margin:8px 0 0">出貨單 ${shn.map(n=>isHQ()?`<button class="link" style="padding:0;font-size:13px" data-a="slipview" data-v="${esc(n)}">${esc(n)}</button>`:esc(n)).join('、')}</div>`}
-  return {L,R:Rt,B:h,cx:o.cx}}/* v524：訂單明細改成條列（hqRow），這裡只給標題左右和展開內容 */
+  return {L,R:Rt,B:h,cx:o.cx,M:`<div class="meta">${meta}</div>${o.note?`<div class="sub" style="margin:0 0 6px">備註：${esc(o.note)}</div>`:''}`}}/* v524：訂單明細改成條列（hqRow），這裡只給標題左右和展開內容 */
 const allIt=()=>S.orders.filter(o=>!o.cx).flatMap(o=>o.items.map((i,x)=>({o,i,x})));
 /* 統一排版：品項依「類別＋品牌」分組，標題共用，名稱尺寸小字逐行列出（同常規出貨／廠商叫貨） */
 const ICg=i=>{let [b,c,n]=itemCols(i.n);if(c=='耗材'){n=dn(i.n);b=''}return {b,c,n:n||dn(i.n)}};
@@ -1804,7 +1806,7 @@ const needTag=r=>{const l=needLeft(r);return l<0?`<span class="tag t2">叫貨逾
 
 const cxRows=()=>S.orders.filter(o=>o.cx&&!o.cxOk&&o.items.some(i=>['已向廠商叫貨','廠商到貨'].includes(i.st)));
 const cxItems=o=>o.items.map(i=>`<div class="bi2"><span class="bn">${esc(dn(i.n))} × ${i.q}</span><small>${esc(i.st)}</small></div>`).join('');
-const cxCard=(o,btn)=>`<div class="cbk"><div class="slh2"><span><b>#${esc(o.no)} ${esc(o.clinic)}</b> <span class="tag t4">${o.type=='ao'?'AO 箱':'常規'}</span></span><small>${o.cxAt?'取消 '+ft(o.cxAt):''}</small></div><small>${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</small>${cxItems(o)}${btn?`<div class="bact"><button class="btn g sm" data-a="uncx" data-o="${esc(o.id)}">↺ 復原取消</button><button class="btn g sm" data-a="cxok" data-o="${esc(o.id)}">已處理</button></div>`:''}</div>`;
+const cxCard=(o,btn)=>`<div class="cbk"><div class="slh2"><span>${MXL(o)} <b>${esc(o.clinic)}</b> <span class="tag t4">${o.type=='ao'?'AO 箱':'常規'}</span></span><small>${o.cxAt?'取消 '+ft(o.cxAt):''}</small></div>${MXB(o,1)}<small>${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</small>${cxItems(o)}${btn?`<div class="bact"><button class="btn g sm" data-a="uncx" data-o="${esc(o.id)}">↺ 復原取消</button><button class="btn g sm" data-a="cxok" data-o="${esc(o.id)}">已處理</button></div>`:''}</div>`;
 const HQT=[['all','全部欄位'],['no','訂單號'],['slip','出貨單號'],['pt','患者'],['doc','醫師'],['clinic','院所／技工所'],['item','品項'],['staff','登記人員'],['note','備註']];
 const HDT=[['ship','出貨日'],['surg','手術日'],['od','叫貨日']];
 const histField=(o,t)=>{const its=o.items;const F={no:[o.no],slip:its.map(i=>i.sh),pt:[o.pt],doc:[o.doc],clinic:[o.clinic,dst(o),o.lab],item:its.map(i=>i.n),staff:[o.staff,o.by,...its.map(i=>i.by)],note:[o.note]};
@@ -2570,6 +2572,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   if(!t.dataset.cf&&((a=='ckgo'&&v=='back')||a=='undo')){let L=[];const P=key=>{const [id,x]=key.split(':'),o=S.orders.find(y=>y.id==id);return o&&o.items[+x]?{o,x:+x,i:o.items[+x]}:null};
     if(a=='ckgo')L=Object.keys(CK(t.dataset.k)).map(P).filter(Boolean).filter(r=>!lockSh(r.i)&&r.i.st!='待確認');else if(t.dataset.m)L=t.dataset.m.split(',').map(P).filter(Boolean).filter(r=>!lockSh(r.i));else{const r=P(t.dataset.o+':'+t.dataset.i);if(r&&!lockSh(r.i))L=[r]}
     if(!L.length)return;const to=[...new Set(L.map(r=>r.i.st=='已出貨'&&r.i.sh?'準備出貨':prevOf(r.i)))];S.ucf={ds:{...t.dataset},n:L.length,to};render();return}
+  if(a=='mxo'){const b=$('mxb_'+t.dataset.v);if(b){b.hidden=!b.hidden;t.setAttribute('aria-expanded',!b.hidden);const sp=t.querySelector('span');if(sp)sp.textContent=b.hidden?'▸':'▾'}return}
   if(a=='uncx'){S.ucx=t.dataset.o;$('modal').innerHTML='';render();return}
   if(a=='ucxx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucx=null;render()}return}
   if(a=='ucxok'){const o=S.orders.find(x=>x.id==S.ucx);S.ucx=null;if(!o||!o.cx){render();return}const rq=o.req&&o.req.k=='cx'?o.req:null,patch={cx:0,cxAt:0,cxBy:'',cxr:'',cxOk:false,uncx:{at:Date.now(),by:who(),r:o.cxr||'',was:o.cxAt||0,...(rq?{rq}:{})},...(rq?{req:{k:'cx',st:'open',txt:rq.txt||'',at:rq.at||0,by:rq.by||''}}:{})};Object.assign(o,patch);S.toast=rq?'已復原 #'+o.no+'，回到院所申請取消中':'已復原訂單 #'+o.no;/* om 11-13：院所申請的取消，復原後回到「申請取消中」，總倉重新同意或拒絕；總倉自己取消的才回到沒取消 */render();Store.update(o.id,patch).catch(()=>{S.msg='復原失敗，請重新整理後再試。';render()});return}
