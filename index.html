@@ -252,6 +252,7 @@ input.big{font-size:18px;font-weight:600;padding:14px 12px}
 .t2{background:var(--rosebg);color:var(--rose)}
 .t3{background:var(--bluebg);color:var(--blue)}
 .t4{background:var(--bg);color:var(--mute)}
+.tcx{background:var(--rose);color:var(--card)}
 .toast{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-weight:600}
 .oh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .oh small{color:var(--mute)}
@@ -1105,7 +1106,7 @@ const OFT=i=>i&&i.of?'<span class="oft">副</span>':'';
 const ITL=i=>!!i.sh||['已向廠商叫貨','廠商到貨','已出貨'].includes(i.st);/* 已叫貨／已開單／已出貨的品項，院所不能改 */
 const MAXN=60,MAXE=20;/* v309 配合資料庫規則：院所一張訂單最多 60 品項；超過 20 品項的訂單院所不能直接修改 */
 const canEditIt=o=>!o.cx&&o.type!='ao'&&!lockO(o)&&!o.items.some(i=>i.spg);/* v520：總倉拆過數量的單，院所只能改日期或申請修改 *//* 有已叫貨／已開單／已出貨就不能改，只能申請取消 */
-const rqOpen=o=>!!(o.req&&o.req.st=='open'),RQK={cx:'取消訂單',ed:'修改品項'};
+const rqOpen=o=>!!(o.req&&o.req.st=='open'),rqCxTag=o=>!o.cx&&rqOpen(o)&&o.req.k=='cx'?'<span class="tag tcx">申請取消中</span>':'',RQK={cx:'取消訂單',ed:'修改品項'};
 const lockO=o=>o.items.some(i=>i.sh||['已向廠商叫貨','廠商到貨','已出貨'].includes(i.st));
 /* v372 om：AO 單在總倉開出貨單／向廠商叫貨前（lockO 前），院所可以改術區（單顎／全口），改過的箱子回到待確認 */
 const aoTOK=o=>o.type=='ao'&&!o.cx&&!lockO(o)&&!o.items.some(i=>i.st=='已備貨待併單'),aoTEd=(o,e)=>{const zo=o.items.some((i,x)=>AOP(i.n)&&AOP(i.n).b!='Nobel Zygoma');return `<div class="aote">${o.items.map((i,x)=>{const p=AOP(i.n);if(!p)return '';const z=p.b=='Nobel Zygoma';return `<div class="aotr"><span class="aotn">${BRT(z?'Nobel':p.b)}<b>${z?'Zygoma':''} AO 箱</b></span><span class="seg">${['單顎','全口'].map(t=>{const off=z&&t=='全口'&&zo,on=e.t[x]==t;return `<button class="chip ${on?'on':''}" data-a="ret" data-i="${x}" data-v="${t}" aria-pressed="${on}" ${off?'disabled':''}>${t}</button>`}).join('')}</span></div>`}).join('')}</div>`};
@@ -1149,7 +1150,7 @@ function minePage(){
     const ok='mo:'+o.id;
     const LO=['廠商直送中','待總倉確認','叫貨中','待出貨','備貨中','已出貨','已取消'],gm={};o.items.forEach(i=>{const l=myLabel(o,i);(gm[l[0]]=gm[l[0]]||{c:l[1],L:[]}).L.push(i)});
     const lx=k=>{const i=LO.indexOf(k);return i<0?5:i},gk=Object.keys(gm).sort((a,b)=>lx(a)-lx(b)),one=gk.length==1,oOpen=!!S.b4o[ok],WP=['已取消','廠商直送中','叫貨中','待總倉確認','待出貨','備貨中','已出貨'],wi=k=>{const i=WP.indexOf(k);return i<0?4:i},top=gk.slice().sort((a,b)=>wi(a)-wi(b))[0];
-    h+=`<details class="card ofold${o.cx?' cxd':''}" data-k="${esc(ok)}" ${oOpen?'open':''}><summary><div class="oh"><b>#${esc(o.no)} ${myCl().length==1?'':esc(o.clinic)}</b><small style="display:flex;gap:6px;align-items:center;flex:none">${one||o.cx?'':`已出貨 ${d}/${n}`}<span class="tag ${gm[top].c}">${one&&top=='已出貨'?'全部已出貨':top}</span><span class="chev" aria-hidden="true">▾</span></small></div>
+    h+=`<details class="card ofold${o.cx?' cxd':''}" data-k="${esc(ok)}" ${oOpen?'open':''}><summary><div class="oh"><b>#${esc(o.no)} ${myCl().length==1?'':esc(o.clinic)}</b><small style="display:flex;gap:6px;align-items:center;flex:none">${one||o.cx?'':`已出貨 ${d}/${n}`}${rqCxTag(o)}<span class="tag ${gm[top].c}">${one&&top=='已出貨'?'全部已出貨':top}</span><span class="chev" aria-hidden="true">▾</span></small></div>
     <div class="prog" aria-hidden="true"><i style="width:${n?Math.round(d/n*100):0}%"></i></div><div class="oline"><span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>${o.demo?'<span class="tag t4">範例</span>':''}<span class="osum">叫貨 ${md(o.od)} · 到貨 ${o.nd?'不指定':md(o.eta)} · ${one?`${n} 項 ${o.items.reduce((t,i)=>t+i.q,0)} 件`:gk.map(k=>`${k} ${gm[k].L.length}`).join('、')}</span>${o.cx||!hqMark(o)?'':hqMark(o)+'<span class="chev" aria-hidden="true" style="visibility:hidden">▾</span>'}</div></summary>
     ${o.cx?`<div class="sub" style="margin:0 0 6px">取消原因：${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</div>`:chgTxt(o)?`<div class="hint" style="margin:0 0 6px">${chgTxt(o)}</div>`:''}
     <div class="meta"><span>叫貨</span><b>${md(o.od)} ${esc(o.tm)}</b><span>預估到貨</span><b>${eta}</b>${ao?`<span>手術日</span><b>${md(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:(o.surg||o.sn)?`<span>手術日</span><b>${o.surg?md(o.surg)+(o.surgT?' '+esc(o.surgT):''):'診所備貨'}</b>`:''}${o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:''}${o.zone?`<span>術區</span><b>${esc(o.zone)}</b>`:''}<span>醫師</span><b>${esc(o.doc||"—")}</b>${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}${o.rush?'<span>配送</span><b style="color:var(--rose)">特急件（拉拉）・運費院所自付</b>':''}<span>登記</span><b>${esc(o.staff)}</b>${dst(o)!=o.clinic?`<span>送貨地點</span><b>${esc(dst(o))}</b>`:''}</div>
@@ -1306,15 +1307,17 @@ const READY=['總倉出貨','廠商到貨'];
 /* v335 om：總倉不需要複製鈕，只顯示單號 */const tnLine=o=>{const tns=[...new Set(o.items.filter(i=>!i.cx).map(i=>i.tn).filter(Boolean))];return tns.length?`<div class="sub tnw" style="margin:6px 0 0">🚚 貨運單號：${isHQ()?tns.map(x=>`<b>${esc(x)}</b>`).join('、'):tns.map(x=>`<button class="tncp" data-a="tncp" data-v="${esc(x)}" title="點一下複製"><b>${esc(x)}</b><span>複製</span></button>`).join(' ')}</div>`:''};
 async function tnCopy(t,v){let ok=false;try{await navigator.clipboard.writeText(v);ok=true}catch(e){try{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove()}catch(e2){}}
   const sp=t.querySelector('span');if(!sp)return;sp.textContent=ok?'✓ 已複製':'請長按單號複製';t.classList.toggle('ok',ok);clearTimeout(t._tm);t._tm=setTimeout(()=>{sp.textContent='複製';t.classList.remove('ok')},1800)}
+const uncxBtn=o=>`<div class="heb"><button class="btn g sm" data-a="uncx" data-o="${esc(o.id)}">↺ 復原取消</button></div>`;/* om 11-12：取消後品項會從各區消失，總倉可復原（品項狀態取消時沒動，拿掉取消標記就回到原本流程） */
 function orderCard(o){const d=o.items.filter(i=>i.st=='已出貨').length,op=d<o.items.length&&!o.cx;
   const ao=o.type=='ao',eta=o.nd?'不指定':`${mdn(o.eta)}${isWk(o.eta)?' <span class="tag t0">週末</span>':''}`;
   const meta=(ao?`<span>手術日</span><b>${mdn(o.surg)}${o.surgT?' '+esc(o.surgT):''}</b>`:(o.surg||o.sn)?`<span>手術日</span><b>${o.surg?mdn(o.surg)+(o.surgT?' '+esc(o.surgT):''):'診所備貨'}</b>`:'')+`<span>預估到貨</span><b>${eta}</b><span>醫師</span><b>${esc(o.doc||"—")}</b>`+(o.pt?`<span>患者</span><b>${esc(o.pt)}</b>`:'')+(o.zone?`<span>術區</span><b>${esc(o.zone)}</b>`:'')+(o.rush?'<span>配送</span><b style="color:var(--rose)">特急件（拉拉）・運費院所自付</b>':'')+`${o.lab?`<span>技工所</span><b>${esc(o.lab)}</b>`:''}<span>登記</span><b>${esc(o.staff)}</b><span>叫貨</span><b>${mdn(o.od)} ${esc(o.tm)}</b>`;
   /* 全部訂單只做查找：不標逾期、不上底色，顏色提示留在出貨區（v264 om） */
   const fk='ha:'+o.id,fOpen=!!S.b4o[fk],sg={};o.items.forEach(i=>{const g=ICg(i),k=[g.b,g.c].filter(Boolean).join(' ');(sg[k]=sg[k]||[]).push(esc(g.n)+' ×'+i.q)});
   const dtL=ao?`手術 ${mdn(o.surg)}`:o.nd?'到貨不指定':`到貨 ${mdn(o.eta)}`;
-  const L=`<b>#${esc(o.no)} ${esc(o.clinic)}${dst(o)!=o.clinic?` → ${esc(dst(o))}`:''}</b> ${o.rxno?'<span class="tag t3">換貨</span>':`<span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>`}${o.cx?' <span class="tag t2">已取消</span>':''}${o.rush&&op?' <span class="tag t2">特急件</span>':''}${o.demo?' <span class="tag t4">範例</span>':''}${o.pt?` <small>${esc(o.pt)}</small>`:''}${o.cx?'':hqMark(o)}`,Rt=`${o.cx?(o.cxAt?'取消 '+ft(o.cxAt):''):dtL+' · 已出貨 '+d+'/'+o.items.length}`;
+  const L=`<b>#${esc(o.no)} ${esc(o.clinic)}${dst(o)!=o.clinic?` → ${esc(dst(o))}`:''}</b> ${o.rxno?'<span class="tag t3">換貨</span>':`<span class="tag ${ao?'t3':'t4'}">${ao?'AO 箱':'常規'}</span>`}${o.cx?' <span class="tag t2">已取消</span>':''}${rqCxTag(o)?' '+rqCxTag(o):''}${o.rush&&op?' <span class="tag t2">特急件</span>':''}${o.demo?' <span class="tag t4">範例</span>':''}${o.pt?` <small>${esc(o.pt)}</small>`:''}${o.cx?'':hqMark(o)}`,Rt=`${o.cx?(o.cxAt?'取消 '+ft(o.cxAt):''):dtL+' · 已出貨 '+d+'/'+o.items.length}`;
   let h=`${o.cx?`<div class="sub" style="margin:0 0 6px">取消原因：${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</div>`:chgTxt(o)?`<div class="hint" style="margin:0 0 6px">${chgTxt(o)}</div>`:''}<div class="meta">${meta}</div>${o.note?`<div class="sub" style="margin:0 0 6px">備註：${esc(o.note)}</div>`:''}`;
   if(o.cx)h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}</span><span class="tag t4">${esc(i.st)}</span>`,'s1')}</div>`;
+  if(o.cx&&isHQ())h+=uncxBtn(o);
   else h+=`<div class="ogi">${ITG(o.items,i=>`<span>${NMg(i)}${i.by&&i.st!='待確認'?` <small class="oby" title="${esc((i.lg||[]).map(l=>ft(l.at)+' '+l.s+'：'+l.by).join('\n'))}">· ${esc(i.by)} ${ft(i.at)}</small>`:''}${ao||shOne(o)?'':shT(i)}</span>${ao?'':`<span class="tag ${stCls(i.st)}">${esc(i.st)}</span>`}`,'s1')}</div>`;
   if(!ao&&shOne(o))h+=`<div class="sub" style="margin:6px 0 0">出貨單${shT(o.items[0])}</div>`;
   h+=tnLine(o);/* v318 om：院所追蹤貨運單號（總倉在登錄庫存輸入） */
@@ -1769,6 +1772,7 @@ function shipPage(){
   else if(tab=='rx')h+=rxView();
   else{
     h+=hqPanel()+`<div id="alist">${allList()}</div>`}
+  const UX=S.ucx&&S.orders.find(o=>o.id==S.ucx);if(UX)h+=`<div class="cfm vmo" data-a="ucxx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定復原訂單 #${esc(UX.no)} ${esc(UX.clinic)}？</b><div class="sub" style="margin:6px 0 14px">取消會撤銷，${UX.items.length} 個品項回到取消前的狀態（${[...new Set(UX.items.map(i=>i.st))].map(esc).join('、')}），照原本流程繼續。</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucxx">取消</button><button class="btn" data-a="ucxok">確定復原</button></div></div></div>`;
   const U=S.ucf;if(U)h+=`<div class="cfm vmo" data-a="ucfx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定把 ${U.n} 項退回「${U.to.map(esc).join('／')}」？</b><div class="sub" style="margin:6px 0 14px">${U.to.includes('準備出貨')?'已出貨的品項會回到準備出貨，出貨單保留。':U.to.length>1?'各品項會退回各自的上一步。':'按錯可以再往下一步操作。'}</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucfx">取消</button><button class="btn" data-a="ucfok">確定退回</button></div></div></div>`;/* v512 om：退回先確認 */
   return h+'</div>'}
 const vTime=(it,st,ex,undo)=>{const n=Date.now();if(st=='待向廠商叫貨'||st=='待確認'){const {ca,ra,...r}=it;return r}
@@ -1799,7 +1803,7 @@ const needTag=r=>{const l=needLeft(r);return l<0?`<span class="tag t2">叫貨逾
 
 const cxRows=()=>S.orders.filter(o=>o.cx&&!o.cxOk&&o.items.some(i=>['已向廠商叫貨','廠商到貨'].includes(i.st)));
 const cxItems=o=>o.items.map(i=>`<div class="bi2"><span class="bn">${esc(dn(i.n))} × ${i.q}</span><small>${esc(i.st)}</small></div>`).join('');
-const cxCard=(o,btn)=>`<div class="cbk"><div class="slh2"><span><b>#${esc(o.no)} ${esc(o.clinic)}</b> <span class="tag t4">${o.type=='ao'?'AO 箱':'常規'}</span></span><small>${o.cxAt?'取消 '+ft(o.cxAt):''}</small></div><small>${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</small>${cxItems(o)}${btn?`<div class="bact"><button class="btn g sm" data-a="cxok" data-o="${esc(o.id)}">已處理</button></div>`:''}</div>`;
+const cxCard=(o,btn)=>`<div class="cbk"><div class="slh2"><span><b>#${esc(o.no)} ${esc(o.clinic)}</b> <span class="tag t4">${o.type=='ao'?'AO 箱':'常規'}</span></span><small>${o.cxAt?'取消 '+ft(o.cxAt):''}</small></div><small>${esc(o.cxr||'')}${o.cxBy?' · '+esc(o.cxBy):''}</small>${cxItems(o)}${btn?`<div class="bact"><button class="btn g sm" data-a="uncx" data-o="${esc(o.id)}">↺ 復原取消</button><button class="btn g sm" data-a="cxok" data-o="${esc(o.id)}">已處理</button></div>`:''}</div>`;
 const HQT=[['all','全部欄位'],['no','訂單號'],['slip','出貨單號'],['pt','患者'],['doc','醫師'],['clinic','院所／技工所'],['item','品項'],['staff','登記人員'],['note','備註']];
 const HDT=[['ship','出貨日'],['surg','手術日'],['od','叫貨日']];
 const histField=(o,t)=>{const its=o.items;const F={no:[o.no],slip:its.map(i=>i.sh),pt:[o.pt],doc:[o.doc],clinic:[o.clinic,dst(o),o.lab],item:its.map(i=>i.n),staff:[o.staff,o.by,...its.map(i=>i.by)],note:[o.note]};
@@ -1819,7 +1823,7 @@ const ordMatch=o=>{const F=S.f,qs=S.hq.trim().toLowerCase().split(/\s+/).filter(
   if(S.hdf||S.hde){if(S.hdt=='ship'){if(!o.items.some(shipIn))return false}else{const d=histDate(o,S.hdt);if(!d||(S.hdf&&d<S.hdf)||(S.hde&&d>S.hde))return false}}
   return true};
 function allList(){const os=S.orders;if(!os.length)return '<div class="card"><div class="empty">目前沒有訂單。院所送出叫貨後，會即時顯示在這裡。</div></div>';
-  const list=os.filter(o=>!archOrd(o)&&cxVis(o)&&ordMatch(o));if(!list.length)return hqBar()+'<div class="hqnone">沒有符合篩選的訂單</div>';
+  const list=os.filter(o=>!archOrd(o)&&(cxVis(o)||hqAny())&&ordMatch(o));/* om 11-12：已取消的單隔天不列，但有搜尋／篩選條件時找得到（可復原取消） */if(!list.length)return hqBar()+'<div class="hqnone">沒有符合篩選的訂單</div>';
   const PG=20,pages=Math.max(1,Math.ceil(list.length/PG));if(S.hp>=pages)S.hp=pages-1;/* v510 om：三個子分頁都每頁 20 筆 */
   const so=list.slice().sort(usort);S.aSorted=so;
   return hqBox('all',so,so.slice(S.hp*PG,S.hp*PG+PG).map(o=>{const c=orderCard(o);return hqRow('all',o,'ha:'+o.id,c.L,c.R,c.B,c.cx)}).join(''),pages,'acsv',S.aMsg)}
@@ -2565,6 +2569,9 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   if(!t.dataset.cf&&((a=='ckgo'&&v=='back')||a=='undo')){let L=[];const P=key=>{const [id,x]=key.split(':'),o=S.orders.find(y=>y.id==id);return o&&o.items[+x]?{o,x:+x,i:o.items[+x]}:null};
     if(a=='ckgo')L=Object.keys(CK(t.dataset.k)).map(P).filter(Boolean).filter(r=>!lockSh(r.i)&&r.i.st!='待確認');else if(t.dataset.m)L=t.dataset.m.split(',').map(P).filter(Boolean).filter(r=>!lockSh(r.i));else{const r=P(t.dataset.o+':'+t.dataset.i);if(r&&!lockSh(r.i))L=[r]}
     if(!L.length)return;const to=[...new Set(L.map(r=>r.i.st=='已出貨'&&r.i.sh?'準備出貨':prevOf(r.i)))];S.ucf={ds:{...t.dataset},n:L.length,to};render();return}
+  if(a=='uncx'){S.ucx=t.dataset.o;$('modal').innerHTML='';render();return}
+  if(a=='ucxx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucx=null;render()}return}
+  if(a=='ucxok'){const o=S.orders.find(x=>x.id==S.ucx);S.ucx=null;if(!o||!o.cx){render();return}const patch={cx:0,cxAt:0,cxBy:'',cxr:'',cxOk:false,uncx:{at:Date.now(),by:who(),r:o.cxr||'',was:o.cxAt||0},...(o.req&&o.req.k=='cx'?{req:null}:{})};Object.assign(o,patch);S.toast='已復原訂單 #'+o.no;render();Store.update(o.id,patch).catch(()=>{S.msg='復原失敗，請重新整理後再試。';render()});return}
   if(a=='ucfx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucf=null;render()}return}
   if(a=='ucfok'){const c=S.ucf;S.ucf=null;if(!c)return;const b=document.createElement('button');Object.assign(b.dataset,c.ds,{cf:'1'});b.style.display='none';document.body.appendChild(b);b.click();b.remove();render();return}
   if(a=='close'&&t.classList.contains('modal')&&e.target!==t)return;
