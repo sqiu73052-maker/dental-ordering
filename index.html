@@ -1872,7 +1872,7 @@ function p3(n0){const ao=AOP(n0);if(ao)return {n:ao.b+' AO 箱',s:[ao.t,ao.off.l
     if(b=='Nobel')sr=sr.map(w=>/^act$/i.test(w)?'NobelActive':/^pcc$/i.test(w)?'NobelParallel CC':w)}
   return {n:[b,c,...sr].filter(Boolean).join(' '),s:sp,p}}
 /* v336 om：匯出拆成 品牌｜類別｜系統｜系列｜品名｜尺寸｜品號（比照特殊規格表單；對帳看價格用）。名稱以 om 給的型錄為準：有品號就用型錄同品號那一列（常備品若特殊規格有同品號，系統／系列從那列取）；院所畫面文字不變 */
-function p7(n0){const q=p3(n0),ao=AOP(n0);
+function p7(n0){{const x=hReg(n0);if(x)return x}const q=p3(n0),ao=AOP(n0);
   if(ao)return {b:ao.b.startsWith('Nobel')?'Nobel':ao.b,c:'AO箱',y:'',l:(ao.b=='Nobel Zygoma'?'Zygoma ':'')+ao.t,n:'AO 箱',s:[ao.off.length?'不含'+ao.off.join('、'):'',ao.rent?'租借器械':''].filter(Boolean).join(' '),p:''};
   let [b,c,r]=itemCols(n0);if(c=='耗材'){/* v523 om：耗材品牌欄空著；最後一個詞是尺寸（S、L、5cc…）放尺寸欄，其他都是品名（Bio-Oss S＝品名 Bio-Oss、尺寸 S） */const w=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim().split(/\s+/).filter(Boolean);let cs='';if(w.length>1&&/^(\d[\d.]*\s*(cc|ml|g|mm|cm)?|XS|S|M|L|XL)$/i.test(w[w.length-1]))cs=w.pop();return {b:'',c,y:'',l:'',n:w.join(' '),s:cs,p:q.p}}
   if(c=='器械租借')return {b,c,y:'',l:'',n:(r||dn(n0)).replace(/（特殊規格）|（型錄外）/g,'').trim(),s:'',p:q.p};
@@ -1890,6 +1890,8 @@ function p7(n0){const q=p3(n0),ao=AOP(n0);
   if(reg&&q.s){const L=q.s.split(/\s+/),z=sysOf(L);if(z){L.splice(z[0],z[1]);y=y||z[2]}s=L.join(' ')}/* 常備品尺寸照常備型錄寫法（如 MUA 0°2） */
   if(!y&&b=='Hiossen'&&/^A?ET3([MR])/.test(q.p))y=/^A?ET3M/.test(q.p)?'Mini':'Regular';
   return c=='植體'?{b,c,y,l:rest,n:'',s,p:q.p}:{b,c,y,l:'',n:rest,s,p:q.p}}
+/* om 11-16：常規 Hiossen Transfer／Analog（副廠 close tray）匯出也用型錄完整名稱、系統、尺寸；常規沒有品號，品號欄空白 */
+const hReg=n0=>{const t=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim().replace(/^Hiossen /,'(H) '),hk=Object.keys(HALT).find(k=>HALT[k]==t),f=hk&&Object.values(SPCAT.Hiossen).flat().find(x=>x.endsWith('('+hk+')'));if(!f)return null;const x=p7('Hiossen '+f);return {...x,p:''}};
 const P7=n=>{const x=p7(n);return [x.b,x.c,x.y,x.l,x.n,x.s,x.p]};
 
 const vCalled=i=>!!(i.st=='待向廠商叫貨'||i.ca||i.ra||i.dv||['已向廠商叫貨','廠商到貨'].some(k=>(i.h||[]).includes(k)||(i.lg||[]).some(x=>x.s==k)));
@@ -2327,7 +2329,7 @@ async function fbBoot(){
       if(first||A.cj!=cj){A.cj=cj;Store.attach(a)}
       A.ready=true;render()},()=>{A.err='讀取帳號資料失敗，請確認安全規則已發布';au.signOut()})})}
 /* v358 om：信箱格式檢查＋常見打錯提示（.co / gmial 之類） */
-/* v364/v365 om：匯出品名寫完整型錄名稱（畫面維持俗稱） */const nmDd=(c,n,b,code)=>{n=String(n||'').trim();if(code){const h=HNK.find(x=>x[0].test(code));if(h)return h[2]}if(/^hab?$/i.test(n))return 'Healing Abutment';if(c=='HAB'){if(/^HAB MUA\b/i.test(n))return n.replace(/^HAB MUA\s*(Healing Cap\s*)?/i,'Healing Cap Multi-unit ').trim();return n.replace(/^(SS\s+)?HAB\b/i,'$1Healing Abutment')}if(/^mua\b/i.test(n)){if(c=='MUA'||/^mua$/i.test(n)||/^mua\s+abutment\b/i.test(n))return n.replace(/^MUA(\s+Abutment)?\b/i,b=='Hiossen'?'Multi Abutment':'Multi-unit Abutment');return n.replace(/^MUA\b/i,b=='Hiossen'?'Multi':'Multi-unit')}return n};
+/* v364/v365 om：匯出品名寫完整型錄名稱（畫面維持俗稱） */const nmDd=(c,n,b,code)=>{n=String(n||'').trim();if(code){const h=HNK.find(x=>x[0].test(code));if(h)return h[2]}if(b=='Hiossen'){const h=HNK.find(x=>x[1]==n);if(h)return h[2]}/* om 11-16：常規沒品號的 Transfer closed 也換完整名稱 */if(/^hab?$/i.test(n))return 'Healing Abutment';if(c=='HAB'){if(/^HAB MUA\b/i.test(n))return n.replace(/^HAB MUA\s*(Healing Cap\s*)?/i,'Healing Cap Multi-unit ').trim();return n.replace(/^(SS\s+)?HAB\b/i,'$1Healing Abutment')}if(/^mua\b/i.test(n)){if(c=='MUA'||/^mua$/i.test(n)||/^mua\s+abutment\b/i.test(n))return n.replace(/^MUA(\s+Abutment)?\b/i,b=='Hiossen'?'Multi Abutment':'Multi-unit Abutment');return n.replace(/^MUA\b/i,b=='Hiossen'?'Multi':'Multi-unit')}return n};
 const MDOM=['gmail.com','yahoo.com.tw','yahoo.com','hotmail.com','outlook.com','icloud.com','msn.com','live.com','hinet.net','me.com','pchome.com.tw'];
 function lev(a,b){const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]==b[j-1]?0:1));p=t}}return d[b.length]}
 function mailErr(e){e=String(e||'').trim().toLowerCase();if(!e)return '請填電子信箱';
