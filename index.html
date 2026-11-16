@@ -1890,8 +1890,8 @@ function p7(n0){{const x=hReg(n0);if(x)return x}const q=p3(n0),ao=AOP(n0);
   if(reg&&q.s){const L=q.s.split(/\s+/),z=sysOf(L);if(z){L.splice(z[0],z[1]);y=y||z[2]}s=L.join(' ')}/* 常備品尺寸照常備型錄寫法（如 MUA 0°2） */
   if(!y&&b=='Hiossen'&&/^A?ET3([MR])/.test(q.p))y=/^A?ET3M/.test(q.p)?'Mini':'Regular';
   return c=='植體'?{b,c,y,l:rest,n:'',s,p:q.p}:{b,c,y,l:'',n:rest,s,p:q.p}}
-/* om 11-16：常規 Hiossen Transfer／Analog（副廠 close tray）匯出也用型錄完整名稱、系統、尺寸；常規沒有品號，品號欄空白 */
-const hReg=n0=>{const t=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim().replace(/^Hiossen /,'(H) '),hk=Object.keys(HALT).find(k=>HALT[k]==t),f=hk&&Object.values(SPCAT.Hiossen).flat().find(x=>x.endsWith('('+hk+')'));if(!f)return null;const x=p7('Hiossen '+f);return {...x,p:''}};
+/* om 11-16：常規 Hiossen Transfer／Analog（副廠 close tray）匯出也用型錄完整名稱、系統、尺寸、原廠品號（om：原副共用品號，原副欄會標） */
+const hReg=n0=>{const t=dn(n0).replace(/（特殊規格）|（型錄外）/g,'').trim().replace(/^Hiossen /,'(H) '),hk=Object.keys(HALT).find(k=>HALT[k]==t),f=hk&&Object.values(SPCAT.Hiossen).flat().find(x=>x.endsWith('('+hk+')'));if(!f)return null;const x=p7('Hiossen '+f);return x};
 const P7=n=>{const x=p7(n);return [x.b,x.c,x.y,x.l,x.n,x.s,x.p]};
 
 const vCalled=i=>!!(i.st=='待向廠商叫貨'||i.ca||i.ra||i.dv||['已向廠商叫貨','廠商到貨'].some(k=>(i.h||[]).includes(k)||(i.lg||[]).some(x=>x.s==k)));
