@@ -159,6 +159,7 @@ input:disabled{opacity:.5}
 .cxd{opacity:.5;filter:grayscale(1)}
 .cxd:hover,.cxd[open]{opacity:.8}
 .mbx{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.it.ntr{align-items:start}.it.ntr{padding:10px 0}.it.ntr>div{padding:6px 0 0 8px}.ntr .ntm{white-space:nowrap}.ntr .tag{vertical-align:1px;margin-left:-8px}@media (max-width:640px){.ntr .ntm{display:block;margin-top:2px}}.ntr .ntd{display:block;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
 .userbar .ubi{display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:6px;border-radius:8px}
 .userbar .ic{width:21px;height:21px;display:block}
 .mail{position:relative}
@@ -381,7 +382,7 @@ tr.sp>td{height:12px;padding:0;box-shadow:none}
 .aotn b{font-weight:600}
 /* ── 螢幕寬 ≤ 640px ── */
 @media (max-width:640px){
-.fchs.f5{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.fchs.f5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .fchs.f5 .fch.fa{grid-column:1/-1}
 .fchs.f5 .fch{padding:7px 2px;font-size:13px;white-space:nowrap;text-align:center}
 .fchs.f5 .fch:not(.fa){display:flex;flex-direction:column;align-items:center;line-height:1.25;border-radius:12px;padding:6px 2px}
@@ -880,6 +881,7 @@ body.slipopen>#wrap,body.slipopen>#bar,body.slipopen>.appbar{display:none!import
 .heb{grid-column:1/-1;justify-self:end;text-align:right;margin-top:6px}
 .hebtn{border:1px solid var(--acc);background:var(--card);color:var(--acc);border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px;cursor:pointer}
 .hebx{font-size:12px;color:var(--warn)}
+.hecx{border-color:var(--rose);color:var(--rose);margin-right:8px}
 .hend{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);margin:6px 0 0}
 .hend input{width:auto}
 .hecf>div{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
@@ -1616,27 +1618,29 @@ function boardView(){
       return `<div class="cfc">${ok.length?ckBox('shp',ok):''}</div><div class="rml${on?' on':''}"><span class="sit">${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${q}</b></span><span class="rmo">${g.length>1?`<details class="mgo" data-k="${esc(dk)}"${op?' open':''}><summary>${g.length} 張訂單</summary>${g.map(y=>`<div>${OLK(y.o)} × ${y.i.q}${diff(y.o)}${y.o.nd?'':' · 到貨 '+mdn(y.o.eta)}${rqOpen(y.o)?' <span class="tag t2">申請取消／修改中</span>':''}</div>${XO(y.o)}`).join('')}</details>`:OLK(r.o)}</span>${g.some(y=>y.i.st=='廠商到貨')?'<span class="tag t3">廠商到貨</span>':''}<span class="rmd">${bys.length?`<b>${md(bys[0])}</b> 前出貨`:''}</span></div>${g.length>1?'':`<div class="rmx">${XO(r.o)}</div>`}`}).join('')+`</div></div>`};
   /* 上方：今天出貨（已開出貨單，包好可一次全部標記已出貨）；下方：可出貨（尚未開單，不限日期都可勾選合併） */
   const fS=f3.filter(r=>r.i.sh),fU=f3.filter(r=>!r.i.sh);
-  const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fU.filter(r=>BKr(r)=='now')),nNext=oc(fU.filter(r=>BKr(r)=='next')),WKr=r=>{const k=BKr(r);if(k=='now'||k=='next')return true;if(aoR(r))return !aoLate(r);if(r.o.nd||!r.o.eta)return true;return r.o.eta<=rCut()}/* v493 om：本週出貨比照 AO 箱，希望到貨日在「本次出貨涵蓋到」(S.cut，預設下週第 3 個工作天) 以前的都可以一起出；不指定到貨日的也算 */,nWeek=oc(fU.filter(WKr));/* om：本週出貨＝出貨日在本週五以前的（含逾期、今天、下個工作天）＋本週要出的 AO 箱；下週的 AO 不列 *//* v466 om：已開出貨單的只在「準備出貨」，今天出貨／下個工作天／全部都只列還沒開單的 */
+  const oc=L=>new Set(L.map(r=>r.o.id)).size,/* v305 om：篩選數字改顯示訂單張數 */nShip=oc(fU.filter(r=>!r.o.rxno&&BKr(r)=='now')),nNext=oc(fU.filter(r=>!r.o.rxno&&BKr(r)=='next')),WKr=r=>{const k=BKr(r);if(k=='now'||k=='next')return true;if(aoR(r))return !aoLate(r);if(r.o.nd||!r.o.eta)return true;return r.o.eta<=rCut()}/* v493 om：本週出貨比照 AO 箱，希望到貨日在「本次出貨涵蓋到」(S.cut，預設下週第 3 個工作天) 以前的都可以一起出；不指定到貨日的也算 */,nWeek=oc(fU.filter(r=>!r.o.rxno&&WKr(r)));/* om：本週出貨＝出貨日在本週五以前的（含逾期、今天、下個工作天）＋本週要出的 AO 箱；下週的 AO 不列 *//* v466 om：已開出貨單的只在「準備出貨」，今天出貨／下個工作天／全部都只列還沒開單的 */
   const T3=(k,n,lab,cls)=>`<button class="fch ${cls} ${F==k?'on':''}" data-a="d3f" data-v="${k||'all'}" aria-pressed="${F==k}" title="${n} 張訂單">${lab} <b>${n}</b></button>`;/* 可出貨內的篩選用小標籤，跟上方大數字卡區分，避免按錯 */
-  const FL={prep:'準備出貨',ship:'今天出貨',next:'下個工作天要出',week:'本週要出'};
+  const FL={rx:'換貨',prep:'準備出貨',ship:'今天出貨',next:'下個工作天要出',week:'本週要出'};
   const gS=grpBy(fS,r=>dst(r.o)),kS=Object.keys(gS).sort((x,y)=>x.localeCompare(y,'zh')),shOK=fS.filter(r=>!rqOpen(r.o));
   const secS=kS.length?`<div class="sec3 r"><h3>準備出貨</h3><small>已開出貨單 ${kS.length} 個地點 · ${fS.length} 項</small>${shOK.length?`<span style="margin-left:auto">${ckBox('shp',shOK,'全選','all')}</span>`:''}</div>`
     +kS.map(c=>{const all=gS[c],shs=[...new Set(all.map(r=>r.i.sh))].sort(),n=all.filter(r=>!rqOpen(r.o)).length,rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
       return `<div class="sgx ok"><div class="sgh cfh"><div class="sgt">${n?ckBox('shp',all.filter(r=>!rqOpen(r.o))):''}<b>📦 ${esc(c)}</b><span class="sgn sgq">${all.length} 項</span></div><div class="sg2"><span class="sg2l"><small>出貨單 ${shs.map(k=>isHQ()?`<button class="link olk" style="padding:0" data-a="slipview" data-v="${esc(k)}" title="點出貨單號可以查看、重印或作廢">${esc(k)}</button>`:esc(k)).join('、')}</small></span><span class="cft">${n?'':'<span class="tag t2">院所申請處理前不能出貨</span>'}</span></div></div>
       ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${GRP(srt(all.filter(r=>r.o.type=='ao'))).map(g=>R3(g,'shp')).join('')}${GRP(GRP(srt(all.filter(r=>r.o.type!='ao')),r=>r.i.n+'|'+(r.i.sp?1:0)+'|'+(r.i.of?1:0)),g=>{const x=IC(g[0].i);return x.b+'|'+x.c}).map(RMC).join('')}</div>`}).join(''):'';
-  const gU=grpBy(fU,r=>dst(r.o));
+  /* om 11-17：換貨訂單獨立一個篩選「換貨」（都要等退回，不分出貨日），今天／下個工作天／本週不列；全部裡放最下方（om：換貨很慢） */const fUx=fU.filter(r=>r.o.rxno),fUn=fU.filter(r=>!r.o.rxno),gX=grpBy(fUx,r=>dst(r.o)),kX=Object.keys(gX).sort((x,y)=>x.localeCompare(y,'zh'));
+  const gU=grpBy(fUn,r=>dst(r.o));
   const msdU=k=>Math.min(999,...gU[k].map(r=>sd(r)??998));
   const kU=Object.keys(gU).filter(k=>!F||gU[k].some(r=>F=='week'?WKr(r):BKr(r)==(F=='ship'?'now':F))).sort((x,y)=>msdU(x)-msdU(y)||Math.max(0,...gU[y].map(lvOf))-Math.max(0,...gU[x].map(lvOf))||x.localeCompare(y,'zh'));
-  const secU=kU.length?`<div class="sec3"><h3>可出貨</h3></div>`
-    +kU.map(c=>{const all=srt(F&&F!='prep'?gU[c].filter(WKr):gU[c]),m=msdU(c)/* v493 om：今天出貨／下個工作天／本週出貨的地點框只帶涵蓋日以前的單，之後的只在「全部」 */,rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
+  const UC=(c,G,nt)=>{const all=srt(nt||!(F&&F!='prep')?G[c]:G[c].filter(WKr)),m=msdU(c)/* v493 om：今天出貨／下個工作天／本週出貨的地點框只帶涵蓋日以前的單，之後的只在「全部」 */,rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
     const rl=all.filter(r=>r.i.rel),rn=rl.length?`<div class="wn">原出貨單 ${[...new Set(rl.map(r=>r.i.rel.no))].map(esc).join('、')} 因 ${[...new Set(rl.map(r=>r.i.rel.cx))].map(esc).join('、')} 取消而作廢，請重新產生出貨單。</div>`:'';
     const ok0=all.filter(r=>!rqOpen(r.o)),ok=ok0.some(r=>r.o.type!='ao')?ok0.filter(r=>r.o.type!='ao'):ok0,selAll=ok.length&&ok.every(selR),gck=ok.length?`<label class="ckl"><input type="checkbox" data-s="pk" data-m="${esc(ok.map(r=>r.o.id+':'+r.x).join(','))}" ${selAll?'checked':''} aria-label="選這組"></label>`:'',btn=!ok.length&&rqs.length?'<span class="tag t2">院所申請處理前不能出貨</span>':'';
     return `<div class="sgx ${all.length?'ok':''}"><div class="sgh cfh"><div class="sgt">${gck}<b>📦 ${esc(c)}</b><span class="sgn sgq">${all.length?`可出貨 ${[...new Set(all.map(r=>r.o.id))].length} 張`:'目前沒有可出貨'}</span></div><div class="sg2"><span class="sg2l"></span><span class="cft">${btn}</span></div></div>
-      ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${rn}${OG(all)}</div>`}).join(''):'';
+      ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${rn}${OG(all)}</div>`};
+  const secX=kX.length&&(!F||F=='rx')?`<div class="sec3"><h3>換貨訂單</h3><small>不分出貨日</small></div>`+kX.map(c=>UC(c,gX,1)).join(''):'';
+  const secU=F=='rx'?'':(kU.length?`<div class="sec3"><h3>可出貨</h3></div>`+kU.map(c=>UC(c,gU,0)).join(''):'');
   const aoN=fU.length,cutb=aoN?`<details class="cutd"><summary>本次出貨涵蓋到 <b>${md(rCut())}</b>${rCut()!=S.cut?`（AO 箱、器械租借到 ${md(S.cut)}）`:''}${S.cut!=AOCUT?'（已調整）':''}</summary><div class="cutbar" style="margin:6px 0 0"><input id="cut" type="date" data-s="cut" value="${S.cut}" style="width:auto"><small>AO 箱、器械租借：希望到貨日在這天以前的這週出，之後的下週出，不套出貨天數；預設是下週第 3 個工作天（${md(AOCUT)}）。一般單：這天以前的也放進「本週出貨」${dueEnd()>S.cut?`，另外希望到貨日前 ${S.sl??1} 個工作天就要寄，所以一般單至少涵蓋到 ${md(dueEnd())}`:''}。每週一自動換新的一週，臨時要調整可以改日期（所有人共用，只在本週有效）${S.cut!=AOCUT?'，<button class="link" style="padding:0;font-size:12px" data-a="cutreset">恢復預設</button>':''}。</small></div></details>`:'';
-  const b3=`<div class="fchs f5">${T3('',oc(fU),'全部','fa')}${T3('prep',oc(fS),'準備出貨','g')}${T3('ship',nShip,'今天出貨','r')}${T3('next',nNext,'下個工作天','w')}${T3('week',nWeek,'本週出貨','')}</div>`
+  const b3=`<div class="fchs f5">${T3('',oc(fU),'全部','fa')}${T3('prep',oc(fS),'準備出貨','g')}${T3('ship',nShip,'今天出貨','r')}${T3('next',nNext,'下個工作天','w')}${T3('week',nWeek,'本週出貨','')}${T3('rx',oc(fUx),'換貨','x')}</div>`
     +cutb
-    +((F=='prep'?secS:secU)||`<div class="card"><div class="empty">沒有${FL[F]||''}的品項</div></div>`);
+    +((F=='prep'?secS:(secU+secX))||`<div class="card"><div class="empty">沒有${FL[F]||''}的品項</div></div>`);
   /* ④ 登錄庫存：已出貨、還沒登錄庫存系統的品項，依「叫貨院所」分組（登錄庫存要依叫貨院所對帳）；登錄完就移走 */
   const g4=grpBy(f4,r=>dst(r.o)),/* om 11-16：一個送貨地點一張卡片（原本依叫貨院所分組） */k4=Object.keys(g4).sort((x,y)=>Math.min(...g4[x].map(r=>r.i.at||0))-Math.min(...g4[y].map(r=>r.i.at||0))||x.localeCompare(y,'zh'));
   const und=S.lastReg?`<div class="fbar"><span>已登錄 ${esc(S.lastReg.c)}（${S.lastReg.m.split(',').length} 項）</span><button class="btn sm" data-a="unregcl" data-m="${esc(S.lastReg.m)}">復原</button></div>`:'';
@@ -1776,6 +1780,7 @@ function shipPage(){uncxFix();
   else{
     h+=hqPanel()+`<div id="alist">${allList()}</div>`}
   const UX=S.ucx&&S.orders.find(o=>o.id==S.ucx);if(UX)h+=`<div class="cfm vmo" data-a="ucxx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定復原訂單 #${esc(UX.no)} ${esc(UX.clinic)}？</b><div class="sub" style="margin:6px 0 14px">${UX.req&&UX.req.k=='cx'?`這張是院所申請取消的，復原後回到「申請取消中」，請再到信件夾重新同意或不同意。`:`取消會撤銷，`}${UX.items.length} 個品項回到取消前的狀態（${[...new Set(UX.items.map(i=>i.st))].map(esc).join('、')}）${UX.req&&UX.req.k=='cx'?'，處理前不會出貨':'，照原本流程繼續'}。</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucxx">取消</button><button class="btn" data-a="ucxok">確定復原</button></div></div></div>`;
+  const HX=S.hcx&&S.orders.find(o=>o.id==S.hcx.id);if(HX){const st=S.hcx,vc=HX.items.filter(i=>i.ca||i.st=='已向廠商叫貨'||i.st=='廠商到貨').length;h+=`<div class="cfm vmo" data-a="hcxx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true">`+(st.step==1?`<b style="font-size:16px">取消訂單 #${esc(HX.no)} ${esc(HX.clinic)}</b><div class="sub" style="margin:6px 0 10px">${HX.items.length} 個品項（${HX.items.slice(0,4).map(i=>esc(ICg(i).n)+' ×'+i.q).join('、')}${HX.items.length>4?'…':''}）</div><label>原因</label><select id="hcx_r">${CXR.map(r=>`<option ${r==st.r?'selected':''}>${r}</option>`).join('')}</select><label style="margin-top:8px">說明（選填）</label><input id="hcx_t" value="${esc(st.t)}" placeholder="例如：院所電話通知" autocomplete="off">${vc?`<div class="wn" style="margin-top:8px">有 ${vc} 項已向廠商叫貨，取消後會列在通知「已取消、需處理廠商貨」，記得跟廠商處理。</div>`:''}<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn g" data-a="hcxx">不取消</button><button class="btn" data-a="hcxn">下一步</button></div>`:`<b style="font-size:17px;color:var(--rose)">確定要取消訂單 #${esc(HX.no)}？</b><div class="sub" style="margin:6px 0 4px">${esc(HX.clinic)} · ${HX.items.length} 個品項 · 原因：${esc(st.r)}${st.t?'（'+esc(st.t)+'）':''}</div><div class="sub" style="margin:0 0 14px">取消後這張單會從待確認、廠商叫貨、可出貨各區移除，院所會看到「已取消」。按錯可以到訂單明細或通知「↺ 復原取消」。</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="hcxb">返回</button><button class="btn" style="background:var(--rose);border-color:var(--rose)" data-a="hcxok">確定取消訂單</button></div>`)+`</div></div>`}
   const U=S.ucf;if(U)h+=`<div class="cfm vmo" data-a="ucfx"><div class="cfb" data-a="noop" role="alertdialog" aria-modal="true"><b style="font-size:16px">確定把 ${U.n} 項退回「${U.to.map(esc).join('／')}」？</b><div class="sub" style="margin:6px 0 14px">${U.to.includes('準備出貨')?'已出貨的品項會回到準備出貨，出貨單保留。':U.to.length>1?'各品項會退回各自的上一步。':'按錯可以再往下一步操作。'}</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" data-a="ucfx">取消</button><button class="btn" data-a="ucfok">確定退回</button></div></div></div>`;/* v512 om：退回先確認 */
   return h+'</div>'}
 const vTime=(it,st,ex,undo)=>{const n=Date.now();if(st=='待向廠商叫貨'||st=='待確認'){const {ca,ra,...r}=it;return r}
@@ -1952,7 +1957,20 @@ function histView(){return hqPanel()+`
   <div id="hlist">${histList()}</div>`}
 /* 院所的信件夾：廠商直送超過 DVD 個工作天還沒按「確認收到」的品項，只給填單人（送出訂單的帳號）；舊訂單沒有填單人就給該院所的帳號 */
 const dvDue=()=>A.me&&A.me.role=='clinic'?allIt().filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv&&dvLate(r)>=DVD&&(r.o.byE?r.o.byE==A.me.email:cls(A.me).includes(r.o.clinic))):[];
-const mailN=()=>!isHQ()?dvDue().length+rxBack().length:rqL().length+cxRows().length+rxReq().length+(isAdm()?pendL().length:0);
+/* om 11-17 院所通知：總倉取消訂單、已出貨（填了貨運單號才通知）、申請取消總倉不同意。只列 NTD 天內的，按「知道了」收起（記在這台裝置的瀏覽器，不寫資料庫） */
+const NTD=7,ntKey=()=>'ntseen_'+(A.me&&A.me.email||''),ntSeen=()=>{try{return JSON.parse(localStorage.getItem(ntKey())||'{}')||{}}catch(e){return {}}},ntSet=ks=>{try{const m=ntSeen(),t=Date.now();ks.forEach(k=>m[k]=t);for(const k in m)if(t-m[k]>40*864e5)delete m[k];localStorage.setItem(ntKey(),JSON.stringify(m))}catch(e){}};
+const ntMine=o=>o.byE?o.byE==A.me.email:cls(A.me).includes(o.clinic);
+const clNt=()=>{if(!A.me||A.me.role!='clinic')return [];const lim=Date.now()-NTD*864e5,seen=ntSeen(),R=[];
+  for(const o of S.orders){if(o.rxno||!ntMine(o))continue;
+    if(o.cx){if(/^總倉取消/.test(o.cxr||'')&&(o.cxAt||0)>lim)R.push({k:'cx:'+o.id+':'+o.cxAt,t:'cx',o,at:o.cxAt});continue}
+    const q=o.req;if(q&&q.k=='cx'&&q.st=='no'&&(q.rat||0)>lim)R.push({k:'rq:'+o.id+':'+q.rat,t:'rq',o,at:q.rat});
+    const g={};for(const i of o.items){if(i.st!='已出貨'||!i.tn)continue;const at=i.tnAt||i.at||0;if(at<=lim)continue;const x=g[i.tn]=g[i.tn]||{at:0,its:[]};x.its.push(i);x.at=Math.max(x.at,at)}
+    for(const tn in g)R.push({k:'sh:'+o.id+':'+tn,t:'sh',o,at:g[tn].at,tn,its:g[tn].its})}
+  return R.filter(n=>!seen[n.k]).sort((a,b)=>b.at-a.at)};
+const ntRow=n=>{const o=n.o,L={cx:['t2','總倉取消訂單'],rq:['t2','取消申請不同意'],sh:['t1','已出貨']}[n.t],its=(n.its||o.items).map(i=>esc(dn(i.n)+' × '+i.q)).join('、');
+  const ex=n.t=='cx'?`取消原因：${esc((o.cxr||'').replace(/^總倉取消：/,''))}`:n.t=='rq'?`總倉回覆：${esc(o.req.reply||'（沒有填）')}・訂單照常進行`:`貨運單號 <b>${esc(n.tn)}</b>`;
+  return `<div class="it ntr"><div style="min-width:0"><div><span class="tag ${L[0]}">${L[1]}</span> <b>#${esc(o.no)}</b> <small class="ntm">${esc(dst(o))} · ${md(iso(new Date(n.at)))}</small></div><small class="ntd">${its}</small><small class="ntd">${ex}</small></div><button class="btn g sm" data-a="ntok" data-v="${esc(n.k)}">已讀</button></div>`};
+const mailN=()=>!isHQ()?dvDue().length+rxBack().length+clNt().length:rqL().length+cxRows().length+rxReq().length+(isAdm()?pendL().length:0);
 /* om 11-13：總倉通知分未處理／已處理，處理過的留 7 天，按錯可以找回來改 */
 const MBD=7*864e5,mbDone=()=>{const now=Date.now(),R=[],rec=(at,h)=>{if(at&&now-at<MBD)R.push({at,h})},ln=(at,by)=>`<small>${ft(at)}${by?' '+esc(by):''}</small>`;
   S.orders.forEach(o=>{const q=o.req;
@@ -1963,8 +1981,8 @@ const MBD=7*864e5,mbDone=()=>{const now=Date.now(),R=[],rec=(at,h)=>{if(at&&now-
     if(o.uncx&&o.uncx.at)rec(o.uncx.at,`<div class="cbk mbd"><div class="slh2"><span>${MXL(o)} <b>${esc(dst(o))}</b> <span class="tag t3">已復原取消</span></span>${ln(o.uncx.at,o.uncx.by)}</div>${MXB(o)}${o.uncx.r?`<div class="sub" style="margin:4px 0 0">原取消原因：${esc(o.uncx.r)}</div>`:''}</div>`)});
   (S.rx||[]).forEach(x=>{const l=(x.lg||[]).find(l=>l.s=='已同意'||l.s=='不同意');if(!l)return;rec(l.at,`<div class="cbk mbd"><div class="slh2"><span><b>#${esc(x.no)} ${esc(x.clinic)}</b> <span class="tag ${l.s=='已同意'?'t1':'t4'}">退換貨${l.s}</span></span>${ln(l.at,l.by)}</div><div class="sub" style="margin:4px 0 0">${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</div><div class="bact"><button class="btn g sm" data-a="rxtab">到退換貨查看</button></div></div>`)});
   return R.sort((a,b)=>b.at-a.at)};
-const mailHtml=()=>{if(!isHQ()){const D=dvDue();return `<div class="slh2" style="margin-bottom:8px"><b style="font-size:17px">✉ 通知</b><button class="btn g sm" data-a="close">關閉</button></div>`
-    +(rxBack().length?`<div class="mbx"><b>退換貨已同意，請寄回（${rxBack().length}）</b><div class="sub" style="margin:2px 0 6px">總倉已同意這些退換貨申請，請把品項寄回管理處。</div>${rxBack().map(x=>`<div class="it"><div style="min-width:0"><b>#${esc(x.no)}</b> <small>${esc(x.clinic)} · ${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="rxtab">查看退換貨</button></div>`:'')+(D.length?`<div class="mbx"><b>廠商直送，請確認是否收到（${D.length}）</b><div class="sub" style="margin:2px 0 6px">這些品項由廠商直接送到院所，收到請按「確認收到」；還沒收到請跟總倉聯絡。</div>${D.map(r=>`<div class="it" style="align-items:center"><div style="min-width:0"><b>${esc(dn(r.i.n))} × ${r.i.q}</b> <small>#${esc(r.o.no)} · ${esc(dst(r.o))} · ${dvLbl(r)}已 ${dvLate(r)} 個工作天</small></div>${dvBtn(r.o,r.i)}</div>`).join('')}</div>`:'<div class="empty">'+(rxBack().length?'':'目前沒有通知')+'</div>')}
+const mailHtml=()=>{if(!isHQ()){const D=dvDue(),N=clNt();return `<div class="slh2" style="margin-bottom:8px"><b style="font-size:17px">✉ 通知</b><button class="btn g sm" data-a="close">關閉</button></div>`
+    +(N.length?`<div class="mbx"><div class="slh2"><b>訂單通知（${N.length}）</b>${N.length>1?`<button class="link" style="font-size:13px" data-a="ntall">全部已讀</button>`:''}</div>${N.map(ntRow).join('')}</div>`:'')+(rxBack().length?`<div class="mbx"><b>退換貨已同意，請寄回（${rxBack().length}）</b><div class="sub" style="margin:2px 0 6px">總倉已同意這些退換貨申請，請把品項寄回管理處。</div>${rxBack().map(x=>`<div class="it"><div style="min-width:0"><b>#${esc(x.no)}</b> <small>${esc(x.clinic)} · ${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="rxtab">查看退換貨</button></div>`:'')+(D.length?`<div class="mbx"><b>廠商直送，請確認是否收到（${D.length}）</b><div class="sub" style="margin:2px 0 6px">這些品項由廠商直接送到院所，收到請按「確認收到」；還沒收到請跟總倉聯絡。</div>${D.map(r=>`<div class="it" style="align-items:center"><div style="min-width:0"><b>${esc(dn(r.i.n))} × ${r.i.q}</b> <small>#${esc(r.o.no)} · ${esc(dst(r.o))} · ${dvLbl(r)}已 ${dvLate(r)} 個工作天</small></div>${dvBtn(r.o,r.i)}</div>`).join('')}</div>`:'<div class="empty">'+(rxBack().length||N.length?'':'目前沒有通知')+'</div>')}
   const P=cxRows(),A2=isAdm()?pendL():[];
   const DN=mbDone(),mbOn=S.mbt=='done';
   return `<div class="slh2" style="margin-bottom:8px"><b style="font-size:17px">✉ 通知</b><button class="btn g sm" data-a="close">關閉</button></div>`
@@ -1972,7 +1990,7 @@ const mailHtml=()=>{if(!isHQ()){const D=dvDue();return `<div class="slh2" style=
   +(mbOn?(DN.length?DN.map(d=>d.h).join(''):'<div class="empty">最近 7 天沒有處理過的通知</div>'):(mailN()?'':'<div class="empty">目前沒有需要處理的事項</div>')+rqBar()
   +(P.length?`<div class="mbx"><b>已取消、需處理廠商貨（${P.length}）</b><div class="sub" style="margin:2px 0 6px">這些訂單已取消，但有品項已向廠商叫貨或已到貨。請確認退貨或轉入庫存，處理完按「已處理」。</div>${P.map(o=>cxCard(o,1)).join('')}</div>`:'')
   +(rxReq().length?`<div class="mbx"><b>院所申請退換貨（${rxReq().length}）</b>${rxReq().map(x=>`<div class="it"><div style="min-width:0"><b>#${esc(x.no)} ${esc(x.clinic)}</b> <small>${(x.items||[]).map(y=>esc(y.k+' '+dn(y.n)+' × '+y.q)).join('、')}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="rxtab">到退換貨處理</button></div>`:'')+(A2.length?`<div class="mbx"><b>帳號申請（${A2.length}）</b>${A2.map(a=>`<div class="it"><div style="min-width:0"><b>${esc(a.name)}</b> <small>${esc(a.email)}</small></div></div>`).join('')}<button class="btn sm" style="margin-top:6px" data-a="goset">到設定審核</button></div>`:''))};
-const mailSig=()=>!isHQ()?JSON.stringify([dvDue().map(kOf),S.dvc||'',rxBack().map(x=>x.id)]):JSON.stringify([rqL().map(o=>o.id),cxRows().map(o=>o.id),isAdm()?pendL().map(a=>a.id):[],rxReq().map(x=>x.id)]);
+const mailSig=()=>!isHQ()?JSON.stringify([dvDue().map(kOf),S.dvc||'',rxBack().map(x=>x.id),clNt().map(n=>n.k)]):JSON.stringify([rqL().map(o=>o.id),cxRows().map(o=>o.id),isAdm()?pendL().map(a=>a.id):[],rxReq().map(x=>x.id)]);
 function mailOpen(){S.mailOn=true;S.mailSig=mailSig();sheet(`<div class="mailbox">${mailHtml()}</div>`)}
 function mailSync(){if(S.mode=='pending')return;const m=$('modal');if(!isHQ()){if(S.mailOn){if(!m.querySelector('.mailbox'))S.mailOn=false;else if(mailSig()!=S.mailSig)mailOpen()}return}
   if(S.mailOn){if(!m.querySelector('.mailbox')){S.mailOn=false}else if(mailSig()!=S.mailSig)mailOpen();if(S.mailOn)return}
@@ -2000,7 +2018,7 @@ const shRec=no=>S.shs.find(x=>x.id==no);
 /* v318/v319 om：貨運單號。輸入後按「確認」才儲存並鎖住，要改按「修改」；存在同張出貨單所有品項（院所看得到）＋出貨單紀錄 */
 const tnId=sh=>'tn_'+String(sh).replace(/[^A-Za-z0-9_-]/g,'_');
 const tnBox=(sh,tn)=>tn&&S.tne!=sh?`<div class="tnl"><span>貨運單號 <b>${esc(tn)}</b></span><button class="link" style="padding:0 0 0 6px;font-size:12px" data-a="tned" data-v="${esc(sh)}">修改</button></div>`:`<div class="tnl"><input class="tni" id="${tnId(sh)}" value="${esc(tn||'')}" placeholder="貨運單號" aria-label="貨運單號" autocomplete="off"><button class="btn sm" data-a="tnok" data-v="${esc(sh)}">確認</button>${tn?`<button class="link" style="padding:0 0 0 4px;font-size:12px" data-a="tnx">取消</button>`:''}</div>`;
-async function saveTn(sh,val){S.msg='';for(const o of S.orders){if(!o.items.some(it=>it.sh==sh&&(it.tn||'')!=val))continue;const next=o.items.map(it=>it.sh!=sh?it:val?{...it,tn:val}:(({tn,...r})=>r)(it));o.items=next;try{await Store.update(o.id,{items:next})}catch(er){S.msg='貨運單號儲存失敗，請重新整理後再試。'}}
+async function saveTn(sh,val){S.msg='';for(const o of S.orders){if(!o.items.some(it=>it.sh==sh&&(it.tn||'')!=val))continue;const next=o.items.map(it=>it.sh!=sh?it:val?{...it,tn:val,tnAt:Date.now()}:(({tn,tnAt,...r})=>r)(it));/* tnAt：院所「已出貨」通知從填貨運單號算 */o.items=next;try{await Store.update(o.id,{items:next})}catch(er){S.msg='貨運單號儲存失敗，請重新整理後再試。'}}
   const r=shRec(sh);if(r)try{await Store.updSh(r.id,{tn:val})}catch(er){}S.tne=null;S.toast=val?'已儲存貨運單號 '+val:'已清除貨運單號';render()}
 
 function shStat(rec){if(rec.void)return{t:'已作廢',c:'t2',n:0};const lr=liveRows(rec),its=lr.map(r=>{const o=S.orders.find(x=>x.id==r.oid);return o&&o.items[r.x]&&o.items[r.x].sh==rec.id?o.items[r.x]:null}),sd=its.filter(i=>i&&i.st=='已出貨'),n=sd.length;
@@ -2178,7 +2196,7 @@ const HNK=[[/^GSPI[MS]/,'Transfer open','Pick-up Impression Coping'],[/^GSTI[MS]
 function hRen(n){const m=/^((?:Hiossen\s+)?)([A-Z]{2,}\d{3,}[A-Z]*)(?:\s+(.*))?$/.exec(String(n||''));if(!m)return n;const h=HNK.find(x=>x[0].test(m[2]));if(!h)return n;const rest=String(m[3]||'').replace(/\((?:open|closed)\s+([^)]*)\)/,'$1').trim();return `${m[1]}${h[1]}${rest?' '+rest:''} (${m[2]})`}
 (SPCAT.Hiossen&&Object.keys(SPCAT.Hiossen).forEach(c=>{if(Array.isArray(SPCAT.Hiossen[c]))SPCAT.Hiossen[c]=SPCAT.Hiossen[c].map(hRen)}));
 /* om 11-13：院所不選原廠／副廠（要原廠寫備註，由總倉決定）。有常規對應的原廠型號直接算常規品項，特殊規格建議不列 */
-const HALT={GSTIS4011N:'(H) Transfer M411',GSTIS4014N:'(H) Transfer M414',/* om 11-16：常規 M414 是 GSTIS4014N（不是 Mini GSTIM） */GSTIS4011:'(H) Transfer R411',GSTIS4014:'(H) Transfer R414',GSTIS5011:'(H) Transfer R511',GSTLA350:'(H) Analog M',GSTLA400:'(H) Analog R'},halt=n=>{const m=/\(([A-Z0-9]+)\)\s*$/.exec(n);return !!(m&&HALT[m[1]])};
+const HALT={GSTIM4011:'(H) Transfer M411',GSTIM4014:'(H) Transfer M414',/* om 11-16：常規 M＝Mini（GSTIM）；v549 的 GSTIS4014N 是誤傳，已改回 */GSTIS4011:'(H) Transfer R411',GSTIS4014:'(H) Transfer R414',GSTIS5011:'(H) Transfer R511',GSTLA350:'(H) Analog M',GSTLA400:'(H) Analog R'},halt=n=>{const m=/\(([A-Z0-9]+)\)\s*$/.exec(n);return !!(m&&HALT[m[1]])};
 const haltOf=r=>{if(r.b&&r.b!='Hiossen')return '';const t=String(r.s||''),c=(t.toUpperCase().match(/GSTI[MS]\d{4}N?|GSTLA\d{3}/)||[])[0];if(c)return HALT[c]?c:'';if(r.c=='Analog')return /\b(3\.0|multi)\b/i.test(t)?'':/\b(mini|m)\b/i.test(t)?'GSTLA350':/\b(regular|r)\b/i.test(t)?'GSTLA400':'';if(r.c!='Transfer'||/open|pick|開窗/i.test(t))return '';const m=/\b(mini|regular|m|r)\b[^\d]*(\d)(?:\.0)?\s*[*x×]\s*(\d{2})/i.exec(t);if(!m)return '';const k='GSTI'+(/^m/i.test(m[1])?'M':'S')+m[2]+'0'+m[3];return HALT[k]?k:''};/* 打原廠型號或「closed Regular 4.0*14」也對到常規 */
 const spTok=x=>String(x||'').toLowerCase().replace(/pick[\s-]*up|開窗/g,' open ').replace(/閉窗|關窗|\bclose\b/g,' closed ').replace(/healing\s*abutments?/g,' hab ').replace(/\bha\b/g,' hab ').replace(/癒合(?![帽蓋])(柱|頭|基台)?/g,' hab ').replace(/multi[\s-]*unit(\s*abutments?)?|multi\s*abutments?/g,' mua ').replace(/\bsp\b/g,'tl').replace(/\b(nobel\s*)?active\b/g,'act').replace(/\b(nobel\s*)?parallel\b/g,'pcc').replace(/\bmini\b/g,'m').replace(/\bregular\b/g,'r').replace(/[øφΦØ°º˚度]|mm/g,' ')/* v304 om：「度」很難打，角度符號一律當空白，17°3＝17度3＝17 3 */.replace(/(\d)\s*[x×*]\s*(?=\d)/g,'$1 ').replace(/([a-z])(?=\d)|(\d)(?=[a-z])/g,'$1$2 ').split(/[^a-z0-9.°\u4e00-\u9fff]+/).filter(Boolean).map(t=>/^\d+(\.\d+)?$/.test(t)?String(parseFloat(t)):t);
 const sysTok=y=>spTok(y).filter(t=>!/^\d/.test(t));/* 系統比對只看英文代號（Nobel 3.0 另外處理） */
@@ -2601,6 +2619,12 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
   if(a=='mbre'){const o=S.orders.find(x=>x.id==t.dataset.o);if(!o)return;const pt=t.dataset.v=='cx'?{cxOk:false,cxOkAt:0,cxOkBy:''}:{req:{k:o.req.k,st:'open',txt:o.req.txt||'',at:o.req.at||0,by:o.req.by||'',...(o.req.byE?{byE:o.req.byE}:{})}};Object.assign(o,pt);S.toast='已改回未處理 #'+o.no;Store.update(o.id,pt).catch(()=>{S.msg='更新失敗，請重新整理後再試。';render()});mailOpen();render();return}
   if(a=='mxo'){const b=$('mxb_'+t.dataset.v);if(b){b.hidden=!b.hidden;t.setAttribute('aria-expanded',!b.hidden);const sp=t.querySelector('span');if(sp)sp.textContent=b.hidden?'▸':'▾'}return}
   if(a=='uncx'){S.ucx=t.dataset.o;$('modal').innerHTML='';render();return}
+  if(a=='hcx'){S.hcx={id:t.dataset.o,step:1,r:CXR[0],t:''};render();return}
+  if(a=='hcxx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.hcx=null;render()}return}
+  if(a=='hcxn'){const H=S.hcx;if(!H)return;H.r=val('hcx_r')||CXR[0];H.t=val('hcx_t').trim();H.step=2;render();return}
+  if(a=='hcxb'){if(S.hcx){S.hcx.step=1;render()}return}
+  if(a=='hcxok'){const H=S.hcx,o=H&&S.orders.find(x=>x.id==H.id);S.hcx=null;if(!o||o.cx||o.items.some(i=>i.st=='已出貨'||i.sh)){S.msg=o&&!o.cx?'這張訂單已有品項開單或出貨，不能取消。':'';render();return}const patch={cx:1,cxAt:Date.now(),cxBy:who(),cxr:'總倉取消：'+H.r+(H.t?'（'+H.t+'）':''),cxOk:false};Object.assign(o,patch);Store.update(o.id,patch).catch(()=>{S.msg='取消失敗，請重新整理後再試。';render()});render();return}
+  if(a=='ntok'||a=='ntall'){ntSet(a=='ntok'?[v]:clNt().map(n=>n.k));S.mailSig=null;mailOpen();render();return}
   if(a=='ucxx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucx=null;render()}return}
   if(a=='ucxok'){const o=S.orders.find(x=>x.id==S.ucx);S.ucx=null;if(!o||!o.cx){render();return}const rq=o.req&&o.req.k=='cx'?o.req:null,patch={cx:0,cxAt:0,cxBy:'',cxr:'',cxOk:false,uncx:{at:Date.now(),by:who(),r:o.cxr||'',was:o.cxAt||0,...(rq?{rq}:{})},...(rq?{req:{k:'cx',st:'open',txt:rq.txt||'',at:rq.at||0,by:rq.by||''}}:{})};Object.assign(o,patch);S.toast=rq?'已復原 #'+o.no+'，回到院所申請取消中':'已復原訂單 #'+o.no;/* om 11-13：院所申請的取消，復原後回到「申請取消中」，總倉重新同意或拒絕；總倉自己取消的才回到沒取消 */render();Store.update(o.id,patch).catch(()=>{S.msg='復原失敗，請重新整理後再試。';render()});return}
   if(a=='ucfx'){if(t.classList.contains('cfm')||t.tagName=='BUTTON'){S.ucf=null;render()}return}
@@ -2859,7 +2883,7 @@ if(FB)(window.FBLOAD||Promise.resolve()).then(()=>fbBoot());
    已出貨的品項鎖住；存檔前要再確認一次；修改紀錄存在 o.hist（t:'hq'），院所端顯示方式待 om 確認排版後再做 */
 const HE_L=HQ_LB;
 const heOpenSh=o=>[...new Set(o.items.filter(lockSh).map(i=>i.sh))];
-const heBtn=o=>{if(!isHQ()||o.cx)return '';const sh=heOpenSh(o);return `<div class="heb">${sh.length?`<span class="hebx">已開出貨單 ${sh.map(esc).join('、')}，要先作廢出貨單才能修改</span>`:`<button class="hebtn" data-he="open" data-v="${esc(o.id)}">✎ 修改訂單</button>`}</div>`};
+const heBtn=o=>{if(!isHQ()||o.cx)return '';const sh=heOpenSh(o),cxOK=!sh.length&&!rqOpen(o)&&!o.items.some(i=>i.st=='已出貨');return `<div class="heb">${sh.length?`<span class="hebx">已開出貨單 ${sh.map(esc).join('、')}，要先作廢出貨單才能修改或取消</span>`:`${cxOK?`<button class="hebtn hecx" data-a="hcx" data-o="${esc(o.id)}">✕ 取消訂單</button>`:''}<button class="hebtn" data-he="open" data-v="${esc(o.id)}">✎ 修改訂單</button>`}</div>`};/* om 11-17：總倉可以取消訂單（兩段確認）；已出貨、已開出貨單、院所申請中不給取消 */
 function heStart(id){const o=S.orders.find(x=>x.id==id);if(!o||!isHQ()||o.cx||heOpenSh(o).length)return;
   S.he={id,step:'edit',err:'',clinic:o.clinic||'',eta:o.nd?'':(o.eta||''),nd:!!o.nd,surg:o.surg||'',surgT:o.surgT||'',pt:o.pt||'',doc:o.doc||'',zone:o.zone||'',staff:o.staff||'',
     dest:dst(o),daddr:o.daddr||'',lab:o.lab||'',rush:!!o.rush,note:o.note||'',q:o.items.map(i=>i.q),rm:o.items.map(()=>0),nm:o.items.map(()=>null),of:o.items.map(i=>!!i.of),sq:o.items.map(()=>0),sof:o.items.map(()=>false)};heDraw()}
