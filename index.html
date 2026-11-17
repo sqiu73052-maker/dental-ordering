@@ -255,6 +255,7 @@ input.big{font-size:18px;font-weight:600;padding:14px 12px}
 .t4{background:var(--bg);color:var(--mute)}
 .tcx{background:var(--rose);color:var(--card)}
 .mxb .meta{margin-bottom:0}.mailbox .mbt{margin:0 0 10px;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important}.mbd .bact{margin-top:6px}.mxb{margin:8px 0 4px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+#updbar{position:sticky;top:0;z-index:50;background:var(--warnbg);color:var(--warn);font-weight:600;padding:8px 12px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:10px}#updbar button{border:1px solid currentColor;background:none;color:inherit;border-radius:8px;padding:3px 10px;font:inherit;cursor:pointer}
 .toast{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-weight:600}
 .oh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .oh small{color:var(--mute)}
@@ -937,7 +938,7 @@ body.slipopen>#wrap,body.slipopen>#bar,body.slipopen>.appbar{display:none!import
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261117073300';</script>
 <script>
 const BR=['Hiossen','Nobel','耗材','器械租借'];
 const SBR=['Hiossen','Nobel','Straumann'];
@@ -2903,7 +2904,7 @@ function heDiff(o,e){const ch=[],v=(k)=>String(e[k]==null?'':e[k]).trim(),ov=k=>
   if(!!e.rush!=!!o.rush)ch.push(['rush',o.rush?'是':'否',e.rush?'是':'否']);
   const it=[];o.items.forEach((i,x)=>{if(e.rm[x]){it.push('移除 '+dn(i.n)+' × '+i.q);return}const nn=heNmNew(i,e.nm[x]);if(nn!=i.n)it.push('品名 '+dn(i.n)+' → '+dn(nn));if(!!e.of[x]!=!!i.of)it.push(dn(nn)+' '+(e.of[x]?'原廠 → 副廠':'副廠 → 原廠'));if(e.sq[x])it.push(`拆數量 ${dn(nn)} ${i.q} → ${e.q[x]}（${e.of[x]?'副廠':'原廠'}）＋ ${e.sq[x]}（${e.sof[x]?'副廠':'原廠'}）`);else if(e.q[x]!=i.q)it.push(dn(nn)+' '+i.q+'→'+e.q[x])});
   return {ch,it}}
-function heCheck(o,e){if(o.items.some((i,x)=>e.sq[x]&&!e.rm[x]&&e.q[x]+e.sq[x]!=i.q))return '拆數量的兩列加起來要等於原本的數量；要改數量請先不拆，改好儲存後再拆。';if(e.nm.some((v,x)=>v&&!e.rm[x]&&!String(v.t||'').trim()))return '品名規格不能空白。';if(e.rm.every(Boolean))return '品項不能全部移除；整張不要請用「取消訂單」。';
+function heCheck(o,e){if(o.type=='ao'&&!String(e.zone||'').trim())return 'AO 箱的術區是必填，不能空白。';/* om 11-17：總倉修改訂單也不能把 AO 術區清空 */if(o.items.some((i,x)=>e.sq[x]&&!e.rm[x]&&e.q[x]+e.sq[x]!=i.q))return '拆數量的兩列加起來要等於原本的數量；要改數量請先不拆，改好儲存後再拆。';if(e.nm.some((v,x)=>v&&!e.rm[x]&&!String(v.t||'').trim()))return '品名規格不能空白。';if(e.rm.every(Boolean))return '品項不能全部移除；整張不要請用「取消訂單」。';
   if(!String(e.clinic).trim())return '請選擇叫貨院所。';if(!String(e.dest).trim())return '請填送貨地點。';
   if(o.type=='ao'&&!(e.eta&&e.surg&&e.surgT&&String(e.pt).trim()))return 'AO 箱的希望到貨日、手術日期時間、患者都要填。';
   if(!e.nd&&!e.eta)return '請填希望到貨日，或選「不指定」。';return ''}
@@ -2959,4 +2960,14 @@ const heField=ev=>{const t=ev.target;if(!t.dataset||!t.dataset.hef||!S.he)return
   if(k=='nd'||k=='rush'){e[k]=t.checked;if(k=='nd'&&t.checked)e.eta='';return heDraw()}
   e[k]=t.value;if(k=='dest'&&ev.type=='change')heDraw()};
 document.addEventListener('input',ev=>{const t=ev.target;if(!t.dataset||!t.dataset.hen||!S.he)return;const v=S.he.nm[+t.dataset.i];if(v)v[t.dataset.hen]=t.value});document.addEventListener('input',heField);document.addEventListener('change',heField);
+/* om 11-17：總倉上傳新版時，開著的網頁要馬上出現「重新整理」按鈕。上線版（build.py 寫入 window.BUILD）每 10 分鐘用 HEAD 看 GitHub 上 index.html 有沒有變（只抓標頭，不耗流量），有變才下載比對版本戳。有新版：上方黃條＋「重新整理」按鈕；使用者剛切回分頁／電腦醒來且沒有填到一半時直接自動重新整理（避免開好幾天的舊網頁一直跑舊版，新店 AO 單術區空白可能就是這樣） */
+(()=>{if(!window.BUILD)return;let busy=false,nv=false,tag='';const U=()=>location.pathname+'?chk='+Date.now();
+  const dirty=()=>{try{return regItems().length+aoItems().length>0||!!($('modal')&&$('modal').innerHTML.trim())||!!(document.activeElement&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))}catch(e){return true}};
+  const bar=()=>{if(document.getElementById('updbar'))return;const d=document.createElement('div');d.id='updbar';d.setAttribute('role','alert');d.innerHTML='<span>系統有新版本</span><button type="button">重新整理</button>';d.querySelector('button').onclick=()=>location.reload();document.body.prepend(d)};
+  const hit=back=>{nv=true;if(back&&!dirty())location.reload();else bar()};
+  const tg=r=>(r.headers.get('etag')||'')+'|'+(r.headers.get('last-modified')||'');
+  const full=async back=>{const r=await fetch(U(),{cache:'no-store'});if(!r.ok)return;tag=tg(r);const m=/window\.BUILD='([^']+)'/.exec(await r.text());if(m&&m[1]!=window.BUILD)hit(back)};
+  const chk=async back=>{if(nv)return hit(back);if(busy)return;busy=true;try{if(!tag)await full(back);else{const r=await fetch(U(),{method:'HEAD',cache:'no-store'});if(r.ok&&tg(r)!=tag)await full(back)}}catch(e){}busy=false};
+  setTimeout(()=>chk(false),5000);setInterval(()=>{if(document.visibilityState=='visible')chk(false)},10*60e3);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chk(true)});addEventListener('focus',()=>chk(true));addEventListener('online',()=>chk(true))})();
 </script>
