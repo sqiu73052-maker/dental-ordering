@@ -925,7 +925,7 @@ body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261118042544';</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119104607';</script>
 <script>
 
 /* ════════════════════════════════════════
@@ -1662,7 +1662,7 @@ function boardView(){
       ${rqs.length?`<div class="wn" style="background:var(--rosebg);color:var(--rose)">#${rqs.map(esc).join('、#')} 院所申請取消中，處理前不會出貨。</div>`:''}${GRP(srt(all.filter(r=>r.o.type=='ao'))).map(g=>R3(g,'shp')).join('')}${GRP(GRP(srt(all.filter(r=>r.o.type!='ao')),r=>r.i.n+'|'+(r.i.sp?1:0)+'|'+(r.i.of?1:0)),g=>{const x=IC(g[0].i);return x.b+'|'+x.c}).map(RMC).join('')}</div>`}).join(''):'';
   /* om 11-17：換貨訂單獨立一個篩選「換貨」（都要等退回，不分出貨日），今天／下個工作天／本週不列；全部裡放最下方（om：換貨很慢） */const fUx=fU.filter(r=>r.o.rxno),fUn=fU.filter(r=>!r.o.rxno),gX=grpBy(fUx,r=>dst(r.o)),kX=Object.keys(gX).sort((x,y)=>x.localeCompare(y,'zh'));
   const gU=grpBy(fUn,r=>dst(r.o));
-  const msdU=k=>Math.min(999,...gU[k].map(r=>sd(r)??998));
+  const msdU=k=>Math.min(999,...(gU[k]||[]).map(r=>sd(r)??998));
   const kU=Object.keys(gU).filter(k=>!F||gU[k].some(r=>F=='week'?WKr(r):BKr(r)==(F=='ship'?'now':F))).sort((x,y)=>msdU(x)-msdU(y)||Math.max(0,...gU[y].map(lvOf))-Math.max(0,...gU[x].map(lvOf))||x.localeCompare(y,'zh'));
   const UC=(c,G,nt)=>{const all=srt(nt||!(F&&F!='prep')?G[c]:G[c].filter(WKr)),m=msdU(c)/* v493 om：今天出貨／下個工作天／本週出貨的地點框只帶涵蓋日以前的單，之後的只在「全部」 */,rqs=[...new Set(all.filter(r=>rqOpen(r.o)).map(r=>r.o.no))];
     const rl=all.filter(r=>r.i.rel),rn=rl.length?`<div class="wn">原出貨單 ${[...new Set(rl.map(r=>r.i.rel.no))].map(esc).join('、')} 因 ${[...new Set(rl.map(r=>r.i.rel.cx))].map(esc).join('、')} 取消而作廢，請重新產生出貨單。</div>`:'';
