@@ -925,7 +925,7 @@ body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119190154';</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119191814';</script>
 <script>
 
 /* ════════════════════════════════════════
@@ -1095,7 +1095,7 @@ function setSess(x){A.sess=x;try{x?localStorage.setItem('dental_sess',JSON.strin
 function syncMe(){if(!FB){let s=A.sess;if(!s){try{s=JSON.parse(localStorage.getItem('dental_sess')||'null')}catch(e){s=null}A.sess=s}
   const a=s&&A.list.find(x=>x.id==s.i);A.me=a&&a.active!==false&&a.hash==s.h?a:null}
   if(A.me&&A.me.role=='clinic'){const m=myCl();if(m.length==1)S.clinic=m[0];else if(!m.includes(S.clinic))S.clinic=''}
-  if(A.me&&typeof S!='undefined')['reg','ao'].forEach(k=>{if(!S.hd[k].staff)S.hd[k].staff=A.me.name})}
+  if(A.me&&typeof S!='undefined'){const ch=S.hdMe!=A.me.id;S.hdMe=A.me.id;['reg','ao'].forEach(k=>{if(ch||!S.hd[k].staff||A.me.role=='clinic')S.hd[k].staff=A.me.name})}}/* v583 院所反應：同一台電腦換帳號登入（沒重新整理）時，登記人員還是上一個人。換帳號就重帶；院所帳號登記人員固定是自己 */
 const isMob=()=>{try{return matchMedia('(max-width:599px)').matches}catch(e){return false}};
 const modeOf=()=>location.hash=='#ship'?'ship':location.hash=='#set'?'set':'order';
 let MODE=modeOf();
@@ -2479,7 +2479,7 @@ async function submitOrder(btn){
   if(need().some(k=>hEmp(h,k))){S.err=true;review();const m=$('suberr');if(m)m.textContent='還不能送出，請補上：'+missing(h).join('、');const b=document.querySelector('.sheet .bad');if(b)b.focus();return}
   if(!isHQ()&&items().length>MAXN){const m=$('suberr');if(m)m.textContent=`一張訂單最多 ${MAXN} 個品項，請分成兩張送出。`;return}
   const a2=items(),d=new Date(),base=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${String(d.getMilliseconds()).padStart(3,'0')}`;let no=base,n2=0;/* v317：加毫秒，避免不同院所同一秒下單撞號（院所只看得到自己的單，查不到別家） */while(S.orders.some(o=>o.no==no))no=base+'bcdefghij'[n2++%9];
-  const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),...(h.dk=='t'&&h.dest?{daddr:(h.daddr||'').trim()}:{}),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),...(ao?{zone:(h.zone||'').trim()}:{}),rush:!!h.rush,staff:h.staff.trim()||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:'待確認',...(ao&&aoV(i)?{dv:1}:{})}))};/* v314 om：所有訂單（含 AO 箱、器械租借）都先進待確認；Straumann AO 箱帶 dv（廠商直送） */
+  const order={no,type:ty(),clinic:S.clinic,od:TODAY,tm:`${pad(d.getHours())}:${pad(d.getMinutes())}`,dest:h.dest=='__other'?h.destOther.trim():(h.dest||S.clinic),...(h.dk=='t'&&h.dest?{daddr:(h.daddr||'').trim()}:{}),eta:h.eta,nd:(ao||h.surg)?false:h.nd,surg:ao?h.surg:(h.sn?'':h.surg),surgT:(ao||!h.sn)?(h.surgT||''):'',sn:!ao&&!!h.sn,doc:h.doc.trim(),pt:h.pt.trim(),...(ao?{zone:(h.zone||'').trim()}:{}),rush:!!h.rush,staff:(A.me&&A.me.role=='clinic'?who():h.staff.trim())||who(),by:who(),byE:A.me?A.me.email:'',...(A.me&&A.me.test?{test:true}:{}),note:h.note,items:a2.map(i=>({n:i.n,q:i.q,sp:i.sp,rent:!!i.rent,st:'待確認',...(ao&&aoV(i)?{dv:1}:{})}))};/* v314 om：所有訂單（含 AO 箱、器械租借）都先進待確認；Straumann AO 箱帶 dv（廠商直送） */
   btn.disabled=true;btn.textContent='送出中…';
   if(order.daddr)labAddrSave(order.dest,order.daddr);
   try{await Store.add(order)}catch(e){btn.disabled=false;btn.textContent='送出叫貨';const m=$('suberr');if(m)m.textContent='送出失敗，可能沒有寫入權限或連線中斷，請再試一次。';return}
