@@ -103,7 +103,7 @@ label.chip.on{color:var(--accink)}
 .eta{display:flex;gap:8px;align-items:center}
 .eta input{flex:1;min-width:0}
 .eta .chip{border-radius:10px;padding:10px 12px;white-space:nowrap}
-input:disabled{opacity:.5}
+input:disabled{opacity:.5}.vdd{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}.vdd>summary{padding:2px 0 6px}.vdr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}.vdr>.sxo{grid-column:1/-1}.vdi{min-width:0;display:flex;flex-direction:column;gap:2px}
 .brand .chip{text-align:center;border-radius:10px;padding:11px 4px}
 .fchs{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 12px}
 .fch{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;color:var(--ink)}
@@ -925,7 +925,7 @@ body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119174030';</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119190154';</script>
 <script>
 
 /* ════════════════════════════════════════
@@ -1762,8 +1762,11 @@ function vendorView(which){
       return `<div class="vsec ${VCLS(v)}"><div class="cg">${ckBox('ven',gv[v],'','vall')/* v518 om：供應商全選 */}<span class="vnm">${esc(v)}</span><small>${ds.length} 張 · ${q} 件</small></div><div class="vls">${ds.map(d=>ROW(gd[d],v)).join('')}</div></div>`}).join('');
     const ex=st=='待向廠商叫貨'&&S.vMsg?`<div class="sub" style="margin:0 0 8px;color:var(--ok)">${esc(S.vMsg)}</div>`:'';
     /* v327 om：全選不分供應商，放在欄位最上面（匯出本來就依院所分檔） */return `<div class="col ${cd?'vcd':'vpd'}"><div class="oh"><b>${title}</b><span style="display:flex;align-items:center;gap:10px"><span class="tag ${st=='待向廠商叫貨'?'t0':'t2'}">${rows.reduce((t,r)=>t+r.i.q,0)} 件</span>${rows.length?ckBox('ven',rows,'全選','all'):''}</span></div>${ex}${body||`<div class="empty">${VF.c||VF.b?'沒有符合篩選的品項':'目前沒有品項'}</div>`}</div>`};
-  /* v327 om：沒有電話叫貨，拿掉「已叫貨」按鈕，只靠匯出採購單移到已向廠商叫貨 */const P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格勾選，或按右上角「全選」），按下方的「匯出採購單」傳給廠商，匯出後會自動移到「已向廠商叫貨」。'),
+  /* v327 om：沒有電話叫貨，拿掉「已叫貨」按鈕，只靠匯出採購單移到已向廠商叫貨 */let P=sec('待向廠商叫貨','待向廠商叫貨','勾選要叫貨的品項（可整格勾選，或按右上角「全選」），按下方的「匯出採購單」傳給廠商，匯出後會自動移到「已向廠商叫貨」。'),
     C=sec('已向廠商叫貨','已向廠商叫貨，等待到貨','勾選後按「到貨」進入可出貨。Straumann AO 箱是廠商直送院所，院所收到會按「確認收到」，也可以勾選後按「院所已收到」。按錯可以勾選後按「退回」。');
+  /* v582 om：士卓曼直送按錯「院所已收到」可以挽回：最近 5 天院所已收到的列在已叫貨下面，按「退回已叫貨」（按兩下確認）回到已向廠商叫貨 */
+  {const DR=all.filter(r=>r.i.st=='已出貨'&&r.i.dir&&!r.i.sh&&Date.now()-(r.i.at||0)<5*864e5).sort((a,b)=>(b.i.at||0)-(a.i.at||0));
+   if(DR.length){const D=`<details class="fold vdd" data-k="dvdone"${(S.b4o||{}).dvdone?' open':''}><summary><b>最近 5 天院所已收到</b><small style="color:var(--muted);margin-left:8px">${DR.length} 項</small></summary>${DR.map(r=>{const k=r.o.id+':'+r.x,cf=S.dvu==k;return `<div class="vdr"><div class="vdi"><div>${OLK(r.o)} <b>${esc(dst(r.o))}</b></div><div>${OFT(r.i)}${esc(IC(r.i).n)} <b>× ${r.i.q}</b></div><small style="color:var(--muted)">${esc(r.i.by||'')} ${ft(r.i.at)}</small></div><button class="btn ${cf?'o':'g'} sm" data-a="dvundo" data-v="${esc(k)}">${cf?'確定退回？':'退回已叫貨'}</button>${XO(r.o)}</div>`}).join('')}</details>`;C=C.replace(/<\/div>$/,D+'</div>')}}
   const sel=ckSel('ven',all.filter(r=>VS.includes(r.i.st)&&fOK(r))),sp=sel.filter(r=>r.i.st=='待向廠商叫貨'),sc=sel.filter(r=>r.i.st=='已向廠商叫貨'&&!r.i.dv),sd=sel.filter(r=>r.i.st=='已向廠商叫貨'&&r.i.dv),vs=[...new Set(sel.map(r=>vendorOf(r.i.n)))];
   const ss=sp.filter(r=>!vmOK(r)),sx=r=>!vmOK(r)&&!(r.o.type=='ao'&&aoV(r.i)),scS=sc.filter(sx),sdS=sd.filter(sx);/* v523 om：士卓曼用 App 下單，勾選後直接按「已叫貨」（送總倉）或「已叫貨直送院所」；已叫貨的可以改直送／改送總倉 */
   const bar=ckBar('ven',sel,vs.map(esc).join('、'),(ss.length?ckBtn('ven','call','已叫貨',ss.length)+ckBtn('ven','calldv','已叫貨直送院所',ss.length,'dvb'):'')+(sp.length?`${sp.filter(vmOK).length?`<button class="btn sm" data-a="vmsg" title="勾選的品項整理成 LINE 叫貨訊息，一個供應商一則（士卓曼用 App 下單，不產生）">複製叫貨訊息（${sp.filter(vmOK).length}）</button>`:''}${''/* v504 om：採購單匯出改到 訂單查詢 › 採購明細 */}`:'')+(sc.length?ckBtn('ven','arr','到貨',sc.length):'')+(sd.length?ckBtn('ven','dir','院所已收到',sd.length):'')+(scS.length?ckBtn('ven','todv','改直送院所',scS.length,'o'):'')+(sdS.length?ckBtn('ven','tohq','改送總倉',sdS.length,'o'):'')+ofBtn('ven',sel)+ckBtn('ven','back','退回',sel.filter(r=>!lockSh(r.i)).length,'o'));
@@ -2766,6 +2769,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t
     (async()=>{for(const id in by){const o=S.orders.find(y=>y.id==id);if(!o)continue;const next=o.items.map((it,i)=>!by[id].includes(i)?it:(({reg,...r})=>r)(it));o.items=next;try{await Store.update(o.id,{items:next})}catch(e){S.msg='更新失敗，可能沒有寫入權限或連線中斷。'}}render()})();return}
   else if(a=='selclr'){S.on={}}
   else if(a=='ckclr'){S.ck[t.dataset.k]={}}
+  else if(a=='dvundo'){const [id,x]=v.split(':'),o=S.orders.find(y=>y.id==id),it=o&&o.items[+x];if(!it||it.st!='已出貨'||!it.dir||it.sh){S.dvu=null}else if(S.dvu!=v){S.dvu=v}else{S.dvu=null;setSt([{o,x:+x}],'已向廠商叫貨',true);return}}
   else if(a=='dvok'){const [id,x]=v.split(':'),o=S.orders.find(y=>y.id==id),it=o&&o.items[+x];if(!it||it.st!='已向廠商叫貨'||!it.dv){S.dvc=null}else if(S.dvc!=v){S.dvc=v}else{S.dvc=null;setSt([{o,x:+x}],'已出貨',false,{dir:1});return}}
   else if(a=='xo'){S.xo=S.xo||{};if(S.xo[v])delete S.xo[v];else S.xo[v]=1}
   else if(a=='nop'){S.nop=S.nop||{};if(S.nop[v])delete S.nop[v];else S.nop[v]=1}
