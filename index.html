@@ -925,7 +925,7 @@ body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119191814';</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261119192029';</script>
 <script>
 
 /* ════════════════════════════════════════
@@ -1095,7 +1095,7 @@ function setSess(x){A.sess=x;try{x?localStorage.setItem('dental_sess',JSON.strin
 function syncMe(){if(!FB){let s=A.sess;if(!s){try{s=JSON.parse(localStorage.getItem('dental_sess')||'null')}catch(e){s=null}A.sess=s}
   const a=s&&A.list.find(x=>x.id==s.i);A.me=a&&a.active!==false&&a.hash==s.h?a:null}
   if(A.me&&A.me.role=='clinic'){const m=myCl();if(m.length==1)S.clinic=m[0];else if(!m.includes(S.clinic))S.clinic=''}
-  if(A.me&&typeof S!='undefined'){const ch=S.hdMe!=A.me.id;S.hdMe=A.me.id;['reg','ao'].forEach(k=>{if(ch||!S.hd[k].staff||A.me.role=='clinic')S.hd[k].staff=A.me.name})}}/* v583 院所反應：同一台電腦換帳號登入（沒重新整理）時，登記人員還是上一個人。換帳號就重帶；院所帳號登記人員固定是自己 */
+  if(A.me&&typeof S!='undefined'){const ch=S.hdMe!=A.me.id;if(ch&&S.hdMe){S.cart={};S.spec=[];S.ao=[];S.af=freshAF();S.hd={reg:freshHD(),ao:freshHD()}}/* 換帳號：上一個人的購物車和填到一半的資料也清掉 */S.hdMe=A.me.id;['reg','ao'].forEach(k=>{if(ch||!S.hd[k].staff||A.me.role=='clinic')S.hd[k].staff=A.me.name})}}/* v583 院所反應：同一台電腦換帳號登入（沒重新整理）時，登記人員還是上一個人。換帳號就重帶；院所帳號登記人員固定是自己 */
 const isMob=()=>{try{return matchMedia('(max-width:599px)').matches}catch(e){return false}};
 const modeOf=()=>location.hash=='#ship'?'ship':location.hash=='#set'?'set':'order';
 let MODE=modeOf();
