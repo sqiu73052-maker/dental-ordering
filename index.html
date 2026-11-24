@@ -119,6 +119,7 @@ input:disabled,select:disabled{opacity:.5;cursor:not-allowed}.rdd{margin-top:18p
 .mbx{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
 .tipb{position:relative;border:0;font:inherit;font-size:12px;cursor:help}.tipb.on::after{content:attr(data-tip);position:absolute;left:0;bottom:calc(100% + 4px);background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:2px 8px;border-radius:6px;white-space:nowrap;font-weight:400;font-size:12px;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 @media (hover:hover){.tipb:hover::after{content:attr(data-tip);position:absolute;left:0;bottom:calc(100% + 4px);background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:2px 8px;border-radius:6px;white-space:nowrap;font-weight:400;font-size:12px;z-index:5;box-shadow:0 1px 3px rgba(0,0,0,.08)}}
+.faqh{font-weight:800;font-size:14px;color:var(--acc);margin:14px 0 4px}.faq{border-bottom:1px solid var(--line)}.faq>summary{padding:9px 0;font-size:15px;font-weight:600;cursor:pointer;list-style-position:inside}.faq>p{margin:0 0 10px;font-size:14px;line-height:1.65;color:var(--ink)}
 .wnl{margin:8px 0 0;padding-left:20px;line-height:1.65;font-size:15px}.wnl li{margin-bottom:8px}
 .rqx{margin:8px 0}.rqi{padding:5px 0;font-size:14px;overflow-wrap:anywhere}.rqi small{display:block;color:var(--mute);font-size:12.5px}.rqi.rqo{color:var(--mute)}.rqc{display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:14px;cursor:pointer}.rqc input{width:18px;height:18px;flex:none;margin:2px 0 0}.rqc small{color:var(--mute)}
 .cdr{padding:4px 0;border-top:1px dashed var(--line)}.cdr:first-of-type{border-top:0}.cdl{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:2px 0 4px}.cdl select{width:auto;min-width:9em;padding:5px 8px;font-size:13.5px}.cds{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12.5px}.cdp{color:var(--mute)}.cdp.ok{color:var(--ok);font-weight:700}.cda{color:var(--mute)}
@@ -930,7 +931,7 @@ body.slipopen #slipbar,body.slipopen #slipinfo{display:none!important}
 <div id="bar"></div>
 <div id="modal"></div>
 <script>window.FBLOAD=(async()=>{const V='10.12.2',S=[n=>'https://www.gstatic.com/firebasejs/'+V+'/firebase-'+n+'-compat.js',n=>'https://cdn.jsdelivr.net/npm/firebase@'+V+'/firebase-'+n+'-compat.js'];const ld=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const t=setTimeout(()=>{s.onload=s.onerror=null;s.remove();no()},10000);s.onload=()=>{clearTimeout(t);ok()};s.onerror=()=>{clearTimeout(t);s.remove();no()};document.head.appendChild(s)});for(const n of ['app','auth','firestore']){let d=false;for(const f of S){try{await ld(f(n));d=true;break}catch(e){}}if(!d)return false}return true})();</script>
-<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261124120642';</script>
+<script>window.FBCFG={apiKey:"AIzaSyDwGqoKFripTEQvFX9VQHmGL9AwHF-P_bo",authDomain:"dental-ordering.firebaseapp.com",projectId:"dental-ordering",storageBucket:"dental-ordering.firebasestorage.app",messagingSenderId:"1014792998352",appId:"1:1014792998352:web:97cc149ed1c2c1a74e3dd5"};window.BUILD='20261124151047';</script>
 <script>
 
 /* ════════════════════════════════════════
@@ -1243,6 +1244,7 @@ function settingsPage(){
   const clr=`<div class="card"><b>清空所有訂單（原型專用）</b><p class="sub" style="margin:2px 0 8px">原型階段使用，會刪除所有訂單，包含範例訂單。正式版不會顯示這個按鈕。</p>${S.clr?`<div class="hint" style="margin:0 0 8px">確定要刪除全部 ${os.length} 張訂單嗎？無法復原。<br>請在下面輸入 <b>delete</b> 再按「確定清空」。</div><input id="clr_t" autocomplete="off" autocapitalize="off" placeholder="輸入 delete" style="margin-bottom:8px">${S.clrE?'<div class="hint" style="margin:-4px 0 8px">輸入的文字不對，沒有清空。</div>':''}<div style="display:flex;gap:8px"><button class="btn g" data-a="clrno">取消</button><button class="btn" data-a="clry">確定清空</button></div>`:`<button class="btn g" data-a="clr" ${os.length?'':'disabled'}>清空所有訂單</button>`}</div>`;
   return `<div class="shead"><div><h1>設定</h1></div><button class="link" style="padding:0" data-a="goback">← 回${S.prev=='ship'&&isHQ()?'出貨管理':'叫貨頁'}</button></div>${S.msg?`<div class="wn" style="margin:0 0 12px">${esc(S.msg)}</div>`:''}
   <div class="card"><b>我的帳號</b><div class="meta" style="margin-top:8px"><span>姓名</span><b>${esc(m.name)}</b><span>信箱</span><b>${esc(m.email)}</b><span>權限</span><b>${ROLE[m.role]}</b>${m.role=='clinic'?`<span>負責院所</span><b>${cls(m).map(esc).join('、')}</b>`:''}</div><button class="btn g" style="margin-top:10px" data-a="pwopen">修改密碼</button> <button class="btn g" style="margin-top:10px" data-a="logout">登出</button></div>
+  <div class="card"><b>使用說明</b><p class="sub" style="margin:2px 0 8px">常見問題，一題一題點開看。</p><button class="btn g" data-a="faq">📖 使用說明／常見問題</button></div>
   <div class="card"><b>使用導覽</b><p class="sub" style="margin:2px 0 8px">一步一步帶你看過操作流程。</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" data-a="tour" data-v="order">▶ 院所叫貨</button><button class="btn g" data-a="tour" data-v="spec">▶ 非常規叫貨</button>${isHQ()?'<button class="btn g" data-a="tour" data-v="ship">▶ 總倉出貨</button>':''}</div></div>
   ${isHQ()?`<div class="card"><b>AO 箱回收期限</b><p class="sub" style="margin:2px 0 8px">超過期限還沒收回，回收分頁會標「逾期」。所有總倉人員共用。</p><div style="display:flex;align-items:center;gap:6px"><label for="rdays" style="margin:0;white-space:nowrap">手術日後</label><input id="rdays" type="number" min="1" max="60" inputmode="numeric" data-s="rdays" value="${S.rd}" style="width:70px"><small>個工作天內要收回（不含假日）</small></div></div><div class="card"><b>常規出貨日</b><p class="sub" style="margin:2px 0 8px">出貨排程用這個算「今天出貨」「下個工作天」和逾期。所有總倉人員共用。</p><div style="display:flex;align-items:center;gap:6px"><label for="sldays" style="margin:0;white-space:nowrap">希望到貨日前</label><input id="sldays" type="number" min="0" max="10" inputmode="numeric" data-s="sldays" value="${S.sl??1}" style="width:70px"><small>個工作天出貨（不含假日）</small></div></div>`:''}
   ${isHQ()?venCard():''}${isAdm()?plCard():''}
@@ -2725,18 +2727,27 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&MODE=='sh
 /* ===== 使用導覽（院所叫貨／特殊規格／總倉出貨） ===== */
 const tourSp=v=>{if(!document.querySelector('#modal .sheet')||!!S.spOpen!=v){S.spOpen=v;specForm()}try{document.activeElement&&document.activeElement.blur()}catch(e){}};
 const tourTab=(t,b)=>()=>{let ch=false;if(S.tab!=t){S.tab=t;if(t=='vpend')S.subs.vendor='vpend';if(t=='ao'||t=='ret')S.subs.ao=t;if(t=='all')S.subs.find='all';ch=true}if(b!=null&&S.bt!=b){S.bt=b;ch=true}if(ch)render()};
+/* v602 om：導覽照新流程重做（修改／加品項／無法修改／申請修改取消／退貨／申請退換貨） */
+const tourCl=()=>{if(S.view=='mine'){S.view='clinic';render()}};
+const tourMine=()=>{let ch=false;if(S.view!='mine'){S.view='mine';ch=true}if(S.mt=='rx'){S.mt='reg';ch=true}if(ch)render();if(!document.querySelector('details.ofold[open]')){const d=document.querySelector('details.ofold:not(.cxd)');if(d){S.b4o=S.b4o||{};if(d.dataset.k)S.b4o[d.dataset.k]=true;d.open=true}}};
+const tourRx=()=>{if(S.view!='mine'||S.mt!='rx'){S.view='mine';S.mt='rx';render()}};
 const TOURS={
  order:{name:'院所叫貨導覽',steps:[
-  {t:'歡迎使用梓程牙材叫貨系統',d:'花 30 秒帶你走一遍院所叫貨的流程。隨時可以按「跳過」。'},
-  {s:['.cbar'],t:'① 選擇叫貨院所',d:'先選這張訂單要算在哪間院所。只負責一間院所的帳號會自動帶入。'},
-  {s:['.otype'],t:'② 選叫貨類型',d:'一般品項選「常規叫貨」；手術用的組合箱選「AO 箱叫貨」，兩種要分開送單；要借的器械盒選「器械租借」，用完要寄回。'},
-  {s:['.brand'],t:'③ 選品牌',d:'Hiossen、Nobel，或是耗材。'},
-  {s:['.chips.cats'],t:'④ 選類別',d:'例如植體、MUA、HAB。類別比較多時可以左右滑動。'},
-  {s:['.card.work'],tap:['.card.work .st button.p'],t:'⑤ 加入數量',d:'找到需要的尺寸，按「＋」加數量；數字也可以直接點進去輸入。'},
-  {s:['button[data-a=spec]'],t:'找不到規格？',d:'按這裡填寫非常規品項。總倉確認後會向廠商叫貨。第一次打開時會有專屬導覽。'},
-  {s:['.cartbar','.cartp'],tap:['.cartbar button[data-a=review]','.cartp button[data-a=review]'],t:'⑥ 確認訂單',d:'選好的品項會集中在這裡。按「確認訂單」，填醫師、手術日、希望到貨日，檢查無誤後送出。'},
-  {s:['.top button[data-v=mine]'],t:'⑦ 我的訂單',d:'送出後到這裡查看出貨進度。要改數量、日期、醫師、患者或備註，按「修改訂單」（還在待總倉確認時可以加品項）；改完叫貨日會變成當天，重新給總倉確認。總倉已向廠商叫貨或已開出貨單的品項不能直接改，要改或取消請按「申請修改／取消」，等總倉回覆。廠商直接送到院所的品項會標「廠商直送中」，收到貨請按「確認收到」。手動填寫的品項如果總倉跟你確認後改過，會標「總倉已修改」，滑過去可以看原本寫的內容。'},
-  {s:['button[data-a=goset]'],t:'想再看一次？',d:'按右上角的齒輪「設定」，就能重新播放這個導覽。',last:true}]},
+  {t:'歡迎使用梓程牙材叫貨系統',d:'帶你走一遍叫貨、修改、退貨的流程，隨時可以按「跳過」。',pre:tourCl},
+  {s:['.cbar'],t:'① 叫貨院所',d:'這張訂單算在哪間院所。只負責一間院所的帳號會自動帶入。',pre:tourCl},
+  {s:['.otype'],t:'② 叫貨類型',d:'一般品項選「常規叫貨」；手術用的組合箱選「AO 箱叫貨」，要另外送一張；借器械盒選「器械租借」，可以跟一般叫貨同一張，用完要寄回。',pre:tourCl},
+  {s:['.brand'],t:'③ 品牌',d:'Hiossen、Nobel，或是耗材。',pre:tourCl},
+  {s:['.chips.cats'],t:'④ 類別',d:'例如植體、MUA、HAB，類別多時可以左右滑。',pre:tourCl},
+  {s:['.card.work'],tap:['.card.work .st button.p'],t:'⑤ 加數量',d:'找到尺寸按「＋」，數字也可以直接點進去輸入。',pre:tourCl},
+  {s:['button[data-a=spec]'],t:'找不到規格？',d:'按這裡填非常規品項，也可以多筆貼上。總倉確認後向廠商叫貨，到貨會比較久。',pre:tourCl},
+  {s:['.cartbar','.cartp'],tap:['.cartbar button[data-a=review]','.cartp button[data-a=review]'],t:'⑥ 確認訂單',d:'選好的品項在這裡。按「確認訂單」填醫師、希望到貨日，檢查後送出。',pre:tourCl},
+  {s:['.top button[data-v=mine]'],t:'⑦ 我的訂單',d:'送出後到這裡看進度：待總倉確認 → 叫貨中／備貨中 → 待出貨 → 已出貨。出貨後有貨運單號，點一下就能複製。',pre:tourCl},
+  {s:['.ofold[open] [data-a=itopen]','.ofold[open] [data-a=reopen]','.ofold[open]'],t:'修改訂單',d:'點開訂單按「修改訂單」。總倉還沒處理的品項可以直接改數量或刪除；整張還在「待總倉確認」時，還可以「＋ 加品項」。',pre:tourMine},
+  {s:['.ofold[open] [data-a=rqopen]','.ofold[open]'],t:'無法修改？送申請',d:'已叫貨或已開出貨單的品項會標「無法修改」，點一下看狀態。要改或取消請按「申請修改／取消」，可以只選幾項，總倉同意後處理。',pre:tourMine},
+  {s:['.ofold[open] [data-a=rtopen]','.ofold[open]'],t:'退貨',d:'已出貨的品項 7 天內可以按「↩ 退貨」（廠商直送從確認收到那天算），只退不換，須全新未拆封、無記號、無汙損，瑕疵／故障除外。',pre:tourMine},
+  {s:['button[data-a=rxnew]'],t:'申請退換貨',d:'超過 7 天、想換尺寸、植入失敗，在「退換貨」按這裡申請。植入失敗只能換貨，要填醫師和病患；Hiossen 不提供植入失敗換貨。',pre:tourRx},
+  {s:['button[data-a=mail]'],t:'✉ 通知',d:'總倉取消、申請結果、已出貨、退換貨同意請寄回、廠商直送請確認收到，都會在這裡。',pre:tourCl},
+  {s:['button[data-a=goset]'],t:'想再看一次？',d:'齒輪「設定」裡可以重新播放導覽，也有「使用說明／常見問題」。',last:true,pre:tourCl}]},
  spec:{name:'非常規叫貨導覽',steps:[
   {t:'非常規叫貨',d:'總倉沒有常備的規格，就在這裡填寫。總倉確認後會向廠商叫貨，所以到貨時間會比常規品項久一點。',pre:()=>tourSp(false)},
   {s:['#modal .sr'],t:'① 填寫一筆',d:'每一筆依序選品牌、類別、系統，再填尺寸或型號和數量。在尺寸欄按 Enter 會自動新增下一筆。',pre:()=>tourSp(false)},
@@ -2749,21 +2760,23 @@ const TOURS={
   {s:['#modal .sticky-f'],t:'⑤ 加入訂單',d:'「全部加入訂單」會放進已選品項，可以再繼續挑常規品項；「加入並確認訂單」會直接進入確認畫面。',pre:()=>tourSp(false)},
   {t:'送出之後',d:'總倉會先確認有沒有現貨，沒有就向廠商叫貨。進度一樣在「我的訂單」查看。之後想再看這個導覽，到「設定」就能播放。',last:true,pre:()=>tourSp(false)}]},
  ship:{name:'總倉出貨導覽',steps:[
-  {t:'總倉出貨後台',d:'帶你看過每天處理訂單的流程：確認 → 叫貨 → 出貨排程 → 登錄庫存 → AO 箱回收。',pre:tourTab('board',0)},
-  {s:['.seg.tabs.hqt'],t:'四個工作區',d:'出貨排程（常規和 AO 箱一起排）、廠商叫貨、回收（AO 箱和租借器械）、資料匯出。按鈕上的數字是待處理件數。',pre:tourTab('board',0)},
-  {s:['button[data-a=mail]'],t:'✉ 待處理通知',d:'院所申請取消、已取消但廠商貨要處理的訂單、帳號申請，都集中在這裡，數字是還沒處理的件數。點開可以直接同意或不同意；有新的取消申請時會自動跳出來。',pre:tourTab('board',0)},
-  {s:['.stls'],t:'三個區塊',d:'出貨排程分成待確認、可出貨、登錄庫存，點數字卡切換；急件、快到期的件數寫在數字卡上方。下面的搜尋框可以找院所、品項、訂單號、出貨單號。',pre:tourTab('board',0)},
-  {s:['.board1'],t:'① 待確認',d:'院所新送出或修改過的訂單會到這裡，一張訂單一組，品牌用顏色標籤區分（Hiossen 粉紅、Nobel 淺藍、Straumann 淺紫、其他淺黃）。勾選品項或勾整張訂單，再按下方功能列的「總倉出貨」（有現貨）或「需叫貨」（要跟廠商叫）。院所手動填寫的品項，跟院所確認後可以勾一項按「修改品名規格」，會標「總倉已修改」並保留原本內容。',pre:tourTab('board',0)},
-  {s:['.fchs'],t:'② 可出貨：四個篩選',d:'「準備出貨」只看已開出貨單、還沒出貨的；開了出貨單的品項就移到這裡；「今天出貨」是還沒開單、今天要出或逾期的（預設看這個）；也可以切到「下個工作天」或「全部」。',pre:tourTab('board',2)},
-  {s:['.board1 .sgx','.board1'],t:'勾選、開單、出貨',d:'同一個送貨地點放在同一框。勾地點標題的框會選整組，也可以只勾單張訂單。勾還沒開單的，下方出現「產生出貨單／標記已出貨／退回」，只有同一個送貨地點能合併，AO 箱要跟常規分開開單。已開出貨單的在上面「準備出貨」區，包好後勾選（或按「全選」）再按「標記已出貨」。點訂單號可以展開細節，點出貨單號可以重印；出貨單上會列出包含的訂單和患者，多張訂單時「訂單」欄用圈號對應。',pre:tourTab('board',2)},
-  {s:['.tdb','.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，依叫貨院所分組。可以先按「匯出未登錄出貨品項」匯入庫存系統，再按「全選」、按下方的「✓ 已登錄」一次移走；也可以只勾部分。按錯可以按「復原」。廠商直送的不用登錄。',pre:tourTab('board',3)},
-  {s:['.vg'],t:'廠商叫貨',d:'需叫貨的品項依供應商分好，一張訂單一格。勾選後按「複製叫貨訊息」貼到 LINE 給廠商，再按「標記已叫貨」移到「已向廠商叫貨」。士卓曼用 App 下單，勾選後按「已叫貨」（送總倉）或「已叫貨直送院所」；直送的不用到貨、出貨，院所收到會按「確認收到」。貨到按「到貨」；按錯可以按「退回」。',pre:tourTab('vpend')},
-  {s:['.cutd','.board1'],t:'AO 箱',d:'AO 箱和常規一起排在「可出貨」，訂單旁標「AO 箱」和手術日。這裡可以調整「本次出貨涵蓋到」哪天：一般單和 AO 箱希望到貨日在這天以前的都會列進「本週出貨」；AO 箱在下週第 2 個工作天以前的標「本週必出」。',pre:()=>{tourTab('board',2)();if(S.d3f!='all'){S.d3f='all';render()}}},
-  {s:['.main > .card'],t:'回收',d:'院所寄回 AO 箱或租借器械後，在這裡登記收回數量；Zygoma 租借的器械組另外登記。手術日後超過設定的工作天還沒收回會標示逾期，天數在「設定」修改。',pre:tourTab('ret')},
-  {s:['.seg.subtabs'],t:'資料匯出',d:'用來找訂單，不標逾期顏色。「訂單明細」看每張訂單各品項走到哪一步，取消的反灰排最後、隔天自動清掉；「出貨明細」只列已出貨的品項，按「匯出試算表」跟院所對帳。兩邊用同一組篩選：選欄位打關鍵字、選日期類型（出貨日／手術日／叫貨日）和區間，再選院所、類型。',pre:tourTab('all')},
-  {s:['button[data-a=goset]'],t:'想再看一次？',d:'按右上角的齒輪「設定」，就能重新播放這個導覽。',last:true,pre:()=>{S.d3f=null;tourTab('board',0)()}}]}};
+  {t:'總倉出貨後台',d:'帶你看過每天的流程：確認 → 叫貨 → 出貨 → 登錄庫存 → 回收，還有取消和退換貨。',pre:tourTab('board',0)},
+  {s:['.seg.tabs.hqt'],t:'五個工作區',d:'出貨排程、廠商叫貨、回收（AO 箱和租借器械）、退換貨、資料匯出。按鈕上的數字是待處理件數。',pre:tourTab('board',0)},
+  {s:['button[data-a=mail]'],t:'✉ 通知',d:'院所申請修改／取消、取消後要處理的廠商貨、退換貨申請、帳號申請都在這裡。處理過的留在「已處理」7 天，按錯可以改回。',pre:tourTab('board',0)},
+  {s:['.stls'],t:'三個區塊',d:'待確認、可出貨、登錄庫存，點數字卡切換。下面的搜尋框可以找院所、品項、訂單號、出貨單號。',pre:tourTab('board',0)},
+  {s:['.board1'],t:'① 待確認',d:'院所新送出或修改過的單在這裡。勾品項或整張，按下方「總倉出貨」（有現貨）或「需叫貨」。點訂單號展開，可以「修改訂單」、設副廠。',pre:tourTab('board',0)},
+  {s:['.fchs'],t:'② 可出貨的篩選',d:'全部、準備出貨（已開出貨單）、今天出貨、下個工作天、本週出貨、換貨。',pre:tourTab('board',2)},
+  {s:['.board1 .sgx','.board1'],t:'開出貨單、出貨',d:'同一個送貨地點一框，勾訂單或單一品項，按「產生出貨單」；AO 箱一張單一張出貨單。開好的單到「準備出貨」，包好勾選按「標記已出貨」。院所申請中的單不能出貨。',pre:tourTab('board',2)},
+  {s:['.cutd','.board1'],t:'本次出貨涵蓋到',d:'AO 箱、器械租借：希望到貨日在這天以前的這週出。一般單另外照出貨天數提前寄。臨時要調整可以改日期。',pre:()=>{tourTab('board',2)();if(S.d3f!=''){S.d3f='';render()}}},
+  {s:['.tdb','.board1'],t:'③ 登錄庫存',d:'已出貨、還沒登錄庫存系統的品項，一個送貨地點一張卡片。先「匯出未登錄出貨品項」匯入庫存系統，再勾選按「✓ 已登錄」。取消後自留入庫的品項也在這裡（標自留入庫）。',pre:tourTab('board',3)},
+  {s:['.vg'],t:'廠商叫貨',d:'依供應商分好。勾選後「複製叫貨訊息」貼到 LINE，再按「標記已叫貨」。士卓曼用 App 下單，按「已叫貨」或「已叫貨直送院所」。貨到按「到貨」。',pre:tourTab('vpend')},
+  {s:['.main > .card'],t:'回收',d:'院所寄回 AO 箱或租借器械，在這裡登記收回。超過期限沒收回會標逾期，天數在「設定」改。',pre:tourTab('ret')},
+  {s:['.main'],t:'退換貨',d:'勾選申請按同意或不同意；收到退貨時選總倉收著或退回廠商（換貨單這時自動開），之後再按「已登錄入庫」或「已退還廠商」。',pre:tourTab('rx')},
+  {t:'院所申請修改／取消',d:'在 ✉ 通知同意或不同意。同意後勾選品項的出貨單自動作廢；修改的同意後自己到訂單「修改訂單」改。叫過貨的取消品項，逐項選去向：廠商取消、退回廠商、自留入庫，每一步按完才離開。',pre:tourTab('board',0)},
+  {s:['.seg.subtabs'],t:'資料匯出',d:'訂單明細、出貨明細、採購明細。用上方篩選找，勾選後匯出，沒勾就匯出全部。',pre:tourTab('all')},
+  {s:['button[data-a=goset]'],t:'想再看一次？',d:'齒輪「設定」裡可以重新播放導覽，也有「使用說明／常見問題」。',last:true,pre:()=>{S.d3f=null;tourTab('board',0)()}}]}};
 const TOUR={on:false,id:'',i:0,el:null,tm:0,auto:{}};
-const TVER={order:4,ship:5};/* 導覽內容大改時加版本號，大家會再自動看到一次 */
+const TVER={order:5,ship:6};/* 導覽內容大改時加版本號，大家會再自動看到一次 */
 const tourKey=id=>'zc_tour_'+id+(TVER[id]?'_v'+TVER[id]:'')+'_'+(A.me?A.me.id:'');
 const tourSeen=id=>{try{return localStorage.getItem(tourKey(id))=='1'}catch(e){return true}};
 const tourMark=id=>{try{localStorage.setItem(tourKey(id),'1')}catch(e){}};
@@ -2773,16 +2786,50 @@ function tourAutoOne(id,ok){if(TOUR.auto[id]||TOUR.on||!A.me||!ok||tourSeen(id))
 /* v600 om：院所更新要點，每個帳號看一次（記在這台裝置；換裝置會再出現一次）。下次有新要點改 WN.id 和內容 */
 const WN={id:'20261124',t:'系統更新',L:['<b>修改訂單</b>：總倉還沒處理的品項可以直接改數量或刪除；整張還在「待總倉確認」時，可以「＋ 加品項」。','已向廠商叫貨或已開出貨單的品項會標「無法修改」（點一下看狀態）。要改或取消，請按「<b>申請修改／取消</b>」，可以只選其中幾項。','<b>退貨</b>：我的訂單裡已出貨的品項，出貨（廠商直送＝確認收到）<b>7 天內</b>可以按「↩ 退貨」，只退不換；須全新未拆封、無記號、無汙損（瑕疵／故障除外）。','<b>植入失敗</b>請用「申請退換貨」，只能換貨（可換尺寸），要填醫師和病患；Hiossen 不提供植入失敗換貨。']};
 const wnKey=()=>'zc_wn_'+WN.id+'_'+(A.me?A.me.id:''),wnSeen=()=>{try{return localStorage.getItem(wnKey())=='1'}catch(e){return true}};
-function wnShow(){sheet(`<h2>${WN.t}</h2><ul class="wnl">${WN.L.map(x=>`<li>${x}</li>`).join('')}</ul><button class="btn" style="width:100%;margin-top:12px" data-a="wnok">知道了</button>`)}
+function wnShow(){sheet(`<h2>${WN.t}</h2><ul class="wnl">${WN.L.map(x=>`<li>${x}</li>`).join('')}</ul><div style="display:flex;gap:8px;margin-top:12px"><button class="btn g" style="flex:1" data-a="faq">📖 常見問題</button><button class="btn" style="flex:1" data-a="wnok">知道了</button></div>`)}
+/* v601 om：使用說明／常見問題（設定裡打開；院所只看院所的題目，總倉多一組總倉題目）。答案要短 */
+const FAQ=()=>[
+ ['叫貨',[
+  ['找不到要的規格？','按「找不到規格？」填非常規叫貨；品項多可以用「多筆貼上」。總倉確認後向廠商叫貨，到貨會比較久。'],
+  ['AO 箱可以跟一般品項同一張嗎？','不行，AO 箱要另外送一張。器械租借可以跟一般叫貨同一張。'],
+  ['希望到貨日怎麼填？','填需要用到的日期，總倉會提前寄出。有貨就寄、不趕時間，可以選「不指定」。'],
+  ['很急怎麼辦？','配送方式選「特急件」（拉拉），運費院所自付。']]],
+ ['修改／取消',[
+  ['送出後可以改嗎？','我的訂單 → 點開訂單 →「修改訂單」。總倉還沒處理的品項可以直接改數量或刪除。'],
+  ['可以加品項嗎？','整張還在「待總倉確認」時，修改訂單裡有「＋ 加品項」。總倉開始處理後，請另外叫一張。'],
+  ['為什麼顯示「無法修改」？','總倉已向廠商叫貨或已開出貨單，點一下可以看狀態。要改或取消，請按「申請修改／取消」，可以只選其中幾項。'],
+  ['送出申請之後？','總倉處理前這張訂單不會出貨。結果會在 ✉ 通知和訂單裡看到。'],
+  ['怎麼整張取消？','都還沒處理時，修改訂單旁邊有「取消訂單」；不然用「申請修改／取消」全部勾選。']]],
+ ['出貨／收貨',[
+  ['怎麼知道出貨了沒？','看我的訂單的狀態。出貨後有貨運單號，點一下就能複製。'],
+  ['「廠商直送中」是什麼？','廠商直接寄到院所，收到請按「確認收到」。'],
+  ['AO 箱、租借器械要寄回嗎？',`要，手術日後 ${S.rd||3} 個工作天內寄回總倉。`]]],
+ ['退貨／換貨',[
+  ['怎麼退貨？','我的訂單 → 點開訂單 →「↩ 退貨」。出貨後 7 天內可以退（廠商直送從按「確認收到」那天算），只退不換。'],
+  ['退貨有什麼條件？','全新未拆封、無記號、無汙損；瑕疵／故障除外。'],
+  ['超過 7 天、或想換尺寸？','用「我的訂單 › 退換貨 › ＋ 申請退換貨」，由總倉確認。'],
+  ['植入失敗怎麼辦？','用「申請退換貨」，原因選植入失敗，只能換貨（可換尺寸），要填醫師和病患。Nobel、Straumann 要下載植入失敗表格，連同失敗植體、術前術後 PANO 一起寄回。Hiossen 不提供植入失敗換貨。'],
+  ['總倉同意之後？','把品項寄回管理處。換貨會在總倉收到後寄出，進度看退換貨卡片。']]],
+ ['其他',[
+  ['✉ 通知會有什麼？','總倉取消訂單、申請不同意、已出貨（有貨運單號）、退換貨同意請寄回、廠商直送請確認收到。'],
+  ['想再看一次操作導覽？','設定 › 使用導覽。']]],
+ ...(isHQ()?[['總倉',[
+  ['院所申請修改／取消？','✉ 通知 › 同意或不同意。同意後，勾選品項的出貨單會自動作廢；申請修改的，同意後到訂單按「修改訂單」改。'],
+  ['取消的品項已向廠商叫貨？','✉「已取消、需處理廠商貨」逐項選去向：廠商取消、退回廠商、自留入庫。每一步按完才會離開。'],
+  ['自留入庫怎麼登錄？','收到貨後會出現在「登錄庫存」（標自留入庫），匯出類型是「自留入庫」，按已登錄就完成。'],
+  ['退換貨收到之後？','按「已收到退貨」選總倉收著或退回廠商，之後再按「已登錄入庫」或「已退還廠商」。換貨單在收到退貨時自動開。'],
+  ['按錯已出貨或已登錄？','登錄庫存勾選後按「退回未出貨」；最近 5 天已登錄的可以「取消登錄」。'],
+  ['出貨單要重開？','點出貨單號 → 作廢，品項回到可出貨再重新產生。']]]]:[])];
+function faqShow(){sheet(`<h2>使用說明／常見問題</h2>${FAQ().map(([h,L])=>`<div class="faqh">${h}</div>${L.map(([q,a])=>`<details class="faq"><summary>${q}</summary><p>${a}</p></details>`).join('')}`).join('')}<button class="btn g" style="width:100%;margin-top:14px" data-a="close">關閉</button>`)}
 function tourAuto(){if(!A.me)return;
- if(MODE=='order'&&A.me.role=='clinic'&&!TOUR.on&&tourSeen('order')&&!wnSeen()&&!document.querySelector('#modal .sheet')&&!S.wnOn){S.wnOn=1;setTimeout(()=>{if(!document.querySelector('#modal .sheet'))wnShow();else S.wnOn=0},600)}
+ if(MODE=='order'&&A.me.role=='clinic'&&!TOUR.on&&Date.now()-(TOUR.go||0)>3000&&tourSeen('order')&&!wnSeen()&&!document.querySelector('#modal .sheet')&&!S.wnOn){S.wnOn=1;setTimeout(()=>{if(!document.querySelector('#modal .sheet')&&!TOUR.on&&!(TOUR.go&&Date.now()-TOUR.go<3000))wnShow();else S.wnOn=0},600)}
  if(MODE=='order'&&S.view=='clinic'&&!document.querySelector('#modal .sheet'))tourAutoOne('order',A.me.role=='clinic');
  if(MODE=='ship')tourAutoOne('ship',A.me.role=='hq')}
 function tourGo(id){id=TOURS[id]?id:'order';
  if(id=='ship'){if(!isHQ())return;S.tab='board';S.bt=0;if(MODE!='ship')go('ship');else render();try{$('modal').innerHTML=''}catch(e){}}
  else{S.view='clinic';S.co=!matchMedia('(max-width:899px)').matches;if(MODE!='order')go('order');else render();try{$('modal').innerHTML=''}catch(e){}
   if(id=='spec'){S.srErr=false;S.spOpen=false;specForm()}}
- TOUR.auto[id]=true;setTimeout(()=>tourStart(id),350)}
+ TOUR.auto[id]=true;TOUR.go=Date.now();setTimeout(()=>tourStart(id),350)}
 function tourStart(id){if(TOUR.on||!TOURS[id])return;TOUR.on=true;TOUR.id=id;TOUR.i=0;
  const w=document.createElement('div');w.className='tour';w.innerHTML='<div class="tour-blk"></div><div class="tour-hl"></div><div class="tour-tap" aria-hidden="true">👆</div><div class="tour-tip" role="dialog" aria-live="polite"></div>';
  document.body.appendChild(w);TOUR.el=w;document.addEventListener('keydown',tourKeyH,true);
@@ -2868,7 +2915,7 @@ function heDraw(){const e=S.he;if(!e)return;const o=S.orders.find(x=>x.id==e.id)
    事件處理（點擊、輸入、選擇；各功能自己的輸入事件放在該功能旁邊）
    ════════════════════════════════════════ */
 document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('.tipb'))document.querySelectorAll('.tipb.on').forEach(x=>x.classList.remove('on'))},true);/* v599：手機點旁邊收起狀態提示 */
-document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,v=t.dataset.v,f=S.af;if(a=='noop')return;if(a=='wnok'){try{localStorage.setItem(wnKey(),'1')}catch(e){}S.wnOn=0;$('modal').innerHTML='';return}if(a=='tip'){const on=!t.classList.contains('on');document.querySelectorAll('.tipb.on').forEach(x=>x.classList.remove('on'));if(on)t.classList.add('on');return}/* v598 om：無法修改的原因，電腦版移上去、手機版點一下出現 *//* v585 om：視窗裡點下拉選單會一直閃——點視窗內部（data-a=noop）原本會整頁重畫，下拉選單被重建就關掉 */
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,v=t.dataset.v,f=S.af;if(a=='noop')return;if(a=='faq'){if($('modal').querySelector('.wnl')){try{localStorage.setItem(wnKey(),'1')}catch(e){}S.wnOn=0}faqShow();return}if(a=='wnok'){try{localStorage.setItem(wnKey(),'1')}catch(e){}S.wnOn=0;$('modal').innerHTML='';return}if(a=='tip'){const on=!t.classList.contains('on');document.querySelectorAll('.tipb.on').forEach(x=>x.classList.remove('on'));if(on)t.classList.add('on');return}/* v598 om：無法修改的原因，電腦版移上去、手機版點一下出現 *//* v585 om：視窗裡點下拉選單會一直閃——點視窗內部（data-a=noop）原本會整頁重畫，下拉選單被重建就關掉 */
   /* v512 om：所有退回都先跳確認視窗 */
   if(!t.dataset.cf&&((a=='ckgo'&&v=='back')||a=='undo')){let L=[];const P=key=>{const [id,x]=key.split(':'),o=S.orders.find(y=>y.id==id);return o&&o.items[+x]?{o,x:+x,i:o.items[+x]}:null};
     if(a=='ckgo')L=Object.keys(CK(t.dataset.k)).map(P).filter(Boolean).filter(r=>!lockSh(r.i)&&r.i.st!='待確認');else if(t.dataset.m)L=t.dataset.m.split(',').map(P).filter(Boolean).filter(r=>!lockSh(r.i));else{const r=P(t.dataset.o+':'+t.dataset.i);if(r&&!lockSh(r.i))L=[r]}
